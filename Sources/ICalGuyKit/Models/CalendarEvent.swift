@@ -9,6 +9,7 @@ public struct CalendarEvent: Codable, Equatable, Sendable {
     public let location: String?
     public let notes: String?
     public let url: String?
+    public let meetingUrl: String?
     public let calendar: CalendarInfo
     public let attendees: [String]
     public let isRecurring: Bool
@@ -23,6 +24,7 @@ public struct CalendarEvent: Codable, Equatable, Sendable {
         location: String?,
         notes: String?,
         url: String?,
+        meetingUrl: String? = nil,
         calendar: CalendarInfo,
         attendees: [String],
         isRecurring: Bool,
@@ -36,6 +38,7 @@ public struct CalendarEvent: Codable, Equatable, Sendable {
         self.location = location
         self.notes = notes
         self.url = url
+        self.meetingUrl = meetingUrl
         self.calendar = calendar
         self.attendees = attendees
         self.isRecurring = isRecurring

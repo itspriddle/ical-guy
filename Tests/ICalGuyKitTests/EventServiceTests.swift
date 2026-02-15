@@ -283,6 +283,46 @@ final class EventServiceTests: XCTestCase {
         XCTAssertEqual(events[3].status, "canceled")
     }
 
+    // MARK: - Meeting URL
+
+    func testMeetingURLExtractedFromNotes() throws {
+        store.mockEvents = [
+            MockEventStore.sampleEvent(
+                title: "Standup",
+                startDate: date(2024, 3, 15, 9, 0),
+                endDate: date(2024, 3, 15, 10, 0),
+                notes: "Join: https://meet.google.com/abc-defg-hij"
+            )
+        ]
+
+        let options = EventServiceOptions(
+            from: date(2024, 3, 15, 0, 0),
+            to: date(2024, 3, 15, 23, 59)
+        )
+
+        let events = try service.fetchEvents(options: options)
+        XCTAssertEqual(events[0].meetingUrl, "https://meet.google.com/abc-defg-hij")
+    }
+
+    func testMeetingURLNilWhenNoMatch() throws {
+        store.mockEvents = [
+            MockEventStore.sampleEvent(
+                title: "Lunch",
+                startDate: date(2024, 3, 15, 12, 0),
+                endDate: date(2024, 3, 15, 13, 0),
+                notes: "Bring your own lunch"
+            )
+        ]
+
+        let options = EventServiceOptions(
+            from: date(2024, 3, 15, 0, 0),
+            to: date(2024, 3, 15, 23, 59)
+        )
+
+        let events = try service.fetchEvents(options: options)
+        XCTAssertNil(events[0].meetingUrl)
+    }
+
     // MARK: - Helpers
 
     private func date(_ year: Int, _ month: Int, _ day: Int, _ hour: Int, _ minute: Int) -> Date {

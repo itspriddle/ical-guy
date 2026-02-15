@@ -74,6 +74,7 @@ With no options, returns today's events. Output is a JSON array:
     "location" : "Conference Room B",
     "notes" : "Weekly sync",
     "url" : null,
+    "meetingUrl" : null,
     "calendar" : {
       "id" : "A1B2C3D4-...",
       "title" : "Work",
@@ -124,9 +125,16 @@ ical-guy events --from 2024-03-15 --to 2024-03-22
 # Pipe to jq for further filtering
 ical-guy events | jq '[.[] | select(.isRecurring == true)]'
 
+# Get meeting URLs for upcoming events
+ical-guy events --from today --to today+7 | jq '[.[] | select(.meetingUrl != null) | {title, meetingUrl}]'
+
 # Next 5 events
 ical-guy events --from today --to today+30 --limit 5
 ```
+
+### Meeting URL extraction
+
+The `meetingUrl` field is automatically populated when a Google Meet, Zoom, Microsoft Teams, or WebEx URL is found in an event's `url`, `location`, or `notes` fields (checked in that priority order). If no meeting URL is detected, the field is `null`.
 
 ### Date formats
 
@@ -154,6 +162,7 @@ make help
   clean        Remove build artifacts
   install      Install to PREFIX (default: /usr/local)
   uninstall    Remove installed binary
+  deps         Install dependencies via Homebrew
   lint         Run SwiftLint
   format       Run swift-format
 ```

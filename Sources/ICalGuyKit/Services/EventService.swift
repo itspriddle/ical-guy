@@ -27,6 +27,7 @@ public struct EventServiceOptions: Sendable {
 
 public struct EventService: Sendable {
     private let store: any EventStoreProtocol
+    private let meetingURLParser = MeetingURLParser()
 
     public init(store: any EventStoreProtocol) {
         self.store = store
@@ -80,6 +81,7 @@ public struct EventService: Sendable {
                 location: raw.location,
                 notes: raw.notes,
                 url: raw.url,
+                meetingUrl: meetingURLParser.extractMeetingURL(url: raw.url, location: raw.location, notes: raw.notes),
                 calendar: CalendarInfo(
                     id: raw.calendarId,
                     title: raw.calendarTitle,
