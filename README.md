@@ -6,17 +6,23 @@ Requires macOS 14 (Sonoma) or later.
 
 ## Install
 
+### Homebrew
+
+```
+brew install itspriddle/brews/ical-guy
+```
+
 ### From source
 
 ```
-git clone https://github.com/youruser/ical-guy.git
+git clone https://github.com/itspriddle/ical-guy.git
 cd ical-guy
 make install
 ```
 
 ### From GitHub release
 
-Download the universal binary from the [releases page](https://github.com/youruser/ical-guy/releases), extract, and move to your PATH:
+Download the universal binary from the [releases page](https://github.com/itspriddle/ical-guy/releases), extract, and move to your PATH:
 
 ```
 tar -xzf ical-guy-v0.1.0-macos-universal.tar.gz
