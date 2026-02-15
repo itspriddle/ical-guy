@@ -1,5 +1,12 @@
 # ical-guy
 
+[![CI](https://github.com/itspriddle/ical-guy/actions/workflows/ci.yml/badge.svg)](https://github.com/itspriddle/ical-guy/actions/workflows/ci.yml)
+[![Swift 6.0+](https://img.shields.io/badge/Swift-6.0+-FA7343.svg)](https://swift.org)
+[![macOS 14+](https://img.shields.io/badge/macOS-14+-000000.svg)](https://developer.apple.com/macos/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+> I'm not your buddy, guy.
+
 A modern Swift CLI for querying macOS calendar events. Built with EventKit as a replacement for the now-unmaintained icalBuddy.
 
 Supports text and JSON output, ANSI colors, meeting detection (Zoom, Google Meet, Teams, WebEx), and TOML configuration.
