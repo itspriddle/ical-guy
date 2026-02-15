@@ -121,6 +121,39 @@ ical-guy meeting list
 
 Meeting subcommands support `--include-calendars` and `--exclude-calendars` for filtering, and `--format`/`--no-color` for output control (except `meeting open`).
 
+### Week number
+
+The `week` command prints the Calendar.app week number for a given date:
+
+```sh
+# Current week number (zero-padded)
+$ ical-guy week
+08
+
+# Week number for a specific date
+$ ical-guy week 2026-03-01
+
+# Offset by weeks
+$ ical-guy week --next 2
+$ ical-guy week --prev 1
+
+# Start/end dates of the week (Sunday and Saturday)
+$ ical-guy week --start-date
+$ ical-guy week --end-date
+
+# Unpadded week number
+$ ical-guy week --no-pad
+
+# Full JSON output
+$ ical-guy week --format json
+{
+  "endDate" : "2026-02-21",
+  "startDate" : "2026-02-15",
+  "week" : 8,
+  "year" : 2026
+}
+```
+
 ### Examples
 
 ```sh

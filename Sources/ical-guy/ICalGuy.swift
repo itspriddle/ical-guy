@@ -6,7 +6,9 @@ struct ICalGuy: AsyncParsableCommand {
     commandName: "ical-guy",
     abstract: "Query macOS calendar events and output as JSON or text.",
     version: "0.3.1",
-    subcommands: [EventsCommand.self, CalendarsCommand.self, MeetingCommand.self],
+    subcommands: [
+      EventsCommand.self, CalendarsCommand.self, MeetingCommand.self, WeekCommand.self,
+    ],
     defaultSubcommand: EventsCommand.self
   )
 }

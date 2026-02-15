@@ -50,6 +50,10 @@ to open the next upcoming meeting instead.
 .B meeting list
 List today's meetings (events with detected video call URLs).
 .TP
+.B week
+Print the Calendar.app week number for a given date.
+Does not require EventKit access.
+.TP
 .B help
 Show help information.
 .SH GLOBAL OPTIONS
@@ -116,6 +120,40 @@ subcommand also supports:
 .TP
 .B \-\-next
 Open the next upcoming meeting instead of the current one.
+.SH WEEK OPTIONS
+.TP
+.I date
+Optional positional argument.
+Date in YYYY\-MM\-DD format or any supported date format (see
+.BR "DATE FORMATS" ).
+Defaults to today.
+.TP
+.BI \-N " n" "\fR,\fP \-\-next" " n"
+Offset forward by
+.I n
+weeks.
+Cannot be used with
+.BR \-\-prev .
+.TP
+.BI \-P " n" "\fR,\fP \-\-prev" " n"
+Offset backward by
+.I n
+weeks.
+Cannot be used with
+.BR \-\-next .
+.TP
+.B \-\-start\-date
+Print the start date (Sunday) of the week as YYYY\-MM\-DD.
+Cannot be used with
+.BR \-\-end\-date .
+.TP
+.B \-\-end\-date
+Print the end date (Saturday) of the week as YYYY\-MM\-DD.
+Cannot be used with
+.BR \-\-start\-date .
+.TP
+.B \-\-no\-pad
+Don't zero\-pad single digit week numbers (e.g., "7" instead of "07").
 .SH DATE FORMATS
 The
 .B \-\-from
@@ -255,6 +293,23 @@ Calendar source (e.g., "iCloud").
 .TP
 .B color
 Hex color code (e.g., "#306793").
+.PP
+.B Week
+.PP
+A JSON object with week information:
+.TP
+.B week
+Week number (1\-53).
+.TP
+.B year
+The year the week belongs to (may differ from the calendar year for
+year\-end dates whose week spills into the next year).
+.TP
+.B startDate
+Sunday of the week as YYYY\-MM\-DD.
+.TP
+.B endDate
+Saturday of the week as YYYY\-MM\-DD.
 .SH CONFIGURATION
 .B ical\-guy
 supports an optional TOML configuration file.
@@ -384,6 +439,30 @@ List today's meetings:
 .RS
 .nf
 $ ical\-guy meeting list
+.fi
+.RE
+.PP
+Show current week number:
+.PP
+.RS
+.nf
+$ ical\-guy week
+.fi
+.RE
+.PP
+Show next week's number:
+.PP
+.RS
+.nf
+$ ical\-guy week \-\-next 1
+.fi
+.RE
+.PP
+Show the Sunday of the current week:
+.PP
+.RS
+.nf
+$ ical\-guy week \-\-start\-date
 .fi
 .RE
 .PP
