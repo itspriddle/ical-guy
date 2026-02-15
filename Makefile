@@ -4,7 +4,7 @@ PREFIX = /usr/local
 BUILD_DIR = .build
 RELEASE_BIN = $(BUILD_DIR)/release/$(BINARY_NAME)
 
-.PHONY: build release test clean install uninstall universal lint format help
+.PHONY: build release test clean install uninstall universal lint format deps help
 
 build: ## Build debug binary
 	swift build
@@ -27,6 +27,9 @@ install: release ## Install to PREFIX (default: /usr/local)
 
 uninstall: ## Remove installed binary
 	rm -f $(PREFIX)/bin/$(BINARY_NAME)
+
+deps: ## Install dependencies via Homebrew
+	brew bundle
 
 lint: ## Run SwiftLint
 	swiftlint
