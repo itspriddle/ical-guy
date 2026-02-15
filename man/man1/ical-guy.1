@@ -1,0 +1,224 @@
+.TH ICAL\-GUY 1 "2026-02-15" "ical-guy 0.1.0" "General Commands Manual"
+.SH NAME
+ical\-guy \- query macOS calendar events and output as JSON
+.SH SYNOPSIS
+.B ical\-guy
+.RI [ subcommand ]
+.RI [ options ]
+.SH DESCRIPTION
+.B ical\-guy
+is a command\-line tool for querying macOS calendar events via EventKit and
+outputting results as JSON.
+It is designed as a modern replacement for icalBuddy.
+.PP
+When no subcommand is given,
+.B events
+is used by default.
+.PP
+JSON output is pretty\-printed with sorted keys when stdout is a terminal,
+and compact when piped.
+.SH SUBCOMMANDS
+.TP
+.B events
+Query calendar events and output as JSON.
+This is the default subcommand.
+.TP
+.B calendars
+List available calendars as JSON.
+.TP
+.B help
+Show help information.
+.SH EVENTS OPTIONS
+.TP
+.BI \-\-from " date"
+Start date for the query range.
+Defaults to the start of today.
+See
+.B DATE FORMATS
+below.
+.TP
+.BI \-\-to " date"
+End date for the query range.
+Defaults to the end of the start date.
+See
+.B DATE FORMATS
+below.
+.TP
+.BI \-\-include\-calendars " calendars"
+Only include events from these calendars.
+Comma\-separated list of calendar titles.
+.TP
+.BI \-\-exclude\-calendars " calendars"
+Exclude events from these calendars.
+Comma\-separated list of calendar titles.
+.TP
+.B \-\-exclude\-all\-day
+Exclude all\-day events from the output.
+.TP
+.BI \-\-limit " n"
+Maximum number of events to return.
+.SH DATE FORMATS
+The
+.B \-\-from
+and
+.B \-\-to
+options accept the following date formats:
+.TP
+.B today
+Start of today.
+.TP
+.B tomorrow
+Start of tomorrow.
+.TP
+.B yesterday
+Start of yesterday.
+.TP
+.BI today+ N
+.I N
+days from today (e.g.,
+.BR today+7 ).
+.TP
+.BI today\- N
+.I N
+days before today (e.g.,
+.BR today\-3 ).
+.TP
+.B now
+Current date and time.
+.TP
+.I YYYY\-MM\-DD
+ISO 8601 date (e.g.,
+.BR 2026\-03\-15 ).
+.SH OUTPUT
+.SS Events
+A JSON array of event objects.
+Each object contains:
+.TP
+.B id
+Unique event identifier.
+.TP
+.B title
+Event title.
+.TP
+.B startDate
+Event start as an ISO 8601 datetime string.
+.TP
+.B endDate
+Event end as an ISO 8601 datetime string.
+.TP
+.B isAllDay
+Boolean indicating whether the event is all\-day.
+.TP
+.B location
+Event location, or null.
+.TP
+.B notes
+Event notes, or null.
+.TP
+.B url
+Event URL, or null.
+.TP
+.B calendar
+Object with
+.BR id ,
+.BR title ,
+.BR type ,
+.BR source ,
+and
+.B color
+fields.
+.TP
+.B attendees
+Array of attendee name strings.
+.TP
+.B isRecurring
+Boolean indicating whether the event is recurring.
+.TP
+.B status
+Event status (e.g., "confirmed").
+.SS Calendars
+A JSON array of calendar objects.
+Each object contains:
+.TP
+.B id
+Unique calendar identifier.
+.TP
+.B title
+Calendar name.
+.TP
+.B type
+Calendar type (e.g., "calDAV", "subscription").
+.TP
+.B source
+Calendar source (e.g., "iCloud").
+.TP
+.B color
+Hex color code (e.g., "#306793").
+.SH EXAMPLES
+Show today's events:
+.PP
+.RS
+.nf
+$ ical\-guy
+.fi
+.RE
+.PP
+Show events for the next 7 days:
+.PP
+.RS
+.nf
+$ ical\-guy events \-\-from today \-\-to today+7
+.fi
+.RE
+.PP
+Show tomorrow's events from the Work calendar, excluding all\-day events:
+.PP
+.RS
+.nf
+$ ical\-guy events \-\-from tomorrow \-\-to tomorrow \\
+    \-\-include\-calendars Work \-\-exclude\-all\-day
+.fi
+.RE
+.PP
+Show the next 5 events in the next 30 days:
+.PP
+.RS
+.nf
+$ ical\-guy events \-\-from today \-\-to today+30 \-\-limit 5
+.fi
+.RE
+.PP
+List available calendars:
+.PP
+.RS
+.nf
+$ ical\-guy calendars
+.fi
+.RE
+.PP
+Pipe events to
+.BR jq (1)
+to filter recurring events:
+.PP
+.RS
+.nf
+$ ical\-guy events | jq '[.[] | select(.isRecurring == true)]'
+.fi
+.RE
+.SH EXIT STATUS
+.TP
+.B 0
+Success.
+.TP
+.B >0
+An error occurred (e.g., calendar access denied).
+.SH NOTES
+On first run, macOS will prompt for calendar access permission.
+The tool requires Full Disk Access or Calendar access to be granted in
+System Settings > Privacy & Security > Calendars.
+.PP
+Requires macOS 14 (Sonoma) or later.
+.SH AUTHORS
+Joshua Priddle
+.SH SEE ALSO
+.BR jq (1)
