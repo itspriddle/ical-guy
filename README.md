@@ -34,7 +34,7 @@ make install
 Download the universal binary from the [releases page](https://github.com/itspriddle/ical-guy/releases), extract, and move to your PATH:
 
 ```
-tar -xzf ical-guy-v0.3.1-macos-universal.tar.gz
+tar -xzf ical-guy-v0.4.0-macos-universal.tar.gz
 mv ical-guy /usr/local/bin/
 ```
 
