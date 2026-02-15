@@ -1,0 +1,27 @@
+disabled_rules:
+  - trailing_comma
+  - identifier_name
+
+opt_in_rules:
+  - empty_count
+  - closure_spacing
+
+line_length:
+  warning: 120
+  error: 150
+
+type_body_length:
+  warning: 300
+  error: 500
+
+file_length:
+  warning: 500
+  error: 1000
+
+function_body_length:
+  warning: 60
+  error: 100
+
+excluded:
+  - .build
+  - Package.swift
