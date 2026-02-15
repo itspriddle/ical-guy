@@ -1,33 +1,69 @@
-.TH ICAL\-GUY 1 "2026-02-15" "ical-guy 0.1.0" "General Commands Manual"
+.TH ICAL\-GUY 1 "2026-02-15" "ical-guy 1.0.0" "General Commands Manual"
 .SH NAME
-ical\-guy \- query macOS calendar events and output as JSON
+ical\-guy \- query macOS calendar events and manage meetings
 .SH SYNOPSIS
 .B ical\-guy
 .RI [ subcommand ]
 .RI [ options ]
 .SH DESCRIPTION
 .B ical\-guy
-is a command\-line tool for querying macOS calendar events via EventKit and
-outputting results as JSON.
+is a command\-line tool for querying macOS calendar events via EventKit.
+It supports text and JSON output, ANSI colors, meeting detection
+(Zoom, Google Meet, Teams, WebEx), and TOML configuration.
 It is designed as a modern replacement for icalBuddy.
 .PP
 When no subcommand is given,
 .B events
 is used by default.
 .PP
-JSON output is pretty\-printed with sorted keys when stdout is a terminal,
-and compact when piped.
+Output format is auto\-detected: text when stdout is a terminal, JSON when
+piped. Override with
+.BR \-\-format .
+.PP
+Colors are enabled by default and adapt to terminal capabilities
+(truecolor, 256\-color, 16\-color). Disable with
+.B \-\-no\-color
+or by setting the
+.B NO_COLOR
+environment variable.
 .SH SUBCOMMANDS
 .TP
 .B events
-Query calendar events and output as JSON.
+Query calendar events.
 This is the default subcommand.
 .TP
 .B calendars
-List available calendars as JSON.
+List available calendars.
+.TP
+.B meeting now
+Show current meeting details with time remaining.
+.TP
+.B meeting next
+Show next upcoming meeting with time until start.
+.TP
+.B meeting open
+Open current meeting URL in the default browser.
+Use
+.B \-\-next
+to open the next upcoming meeting instead.
+.TP
+.B meeting list
+List today's meetings (events with detected video call URLs).
 .TP
 .B help
 Show help information.
+.SH GLOBAL OPTIONS
+These options are available on most subcommands.
+.TP
+.BI \-\-format " format"
+Output format:
+.B json
+or
+.BR text .
+Auto\-detects based on whether stdout is a TTY if not specified.
+.TP
+.B \-\-no\-color
+Disable colored output.
 .SH EVENTS OPTIONS
 .TP
 .BI \-\-from " date"
@@ -57,6 +93,29 @@ Exclude all\-day events from the output.
 .TP
 .BI \-\-limit " n"
 Maximum number of events to return.
+.SH MEETING OPTIONS
+The
+.BR "meeting now" ,
+.BR "meeting next" ,
+.BR "meeting open" ,
+and
+.B "meeting list"
+subcommands support the following options:
+.TP
+.BI \-\-include\-calendars " calendars"
+Only include events from these calendars.
+Comma\-separated list of calendar titles.
+.TP
+.BI \-\-exclude\-calendars " calendars"
+Exclude events from these calendars.
+Comma\-separated list of calendar titles.
+.PP
+The
+.B "meeting open"
+subcommand also supports:
+.TP
+.B \-\-next
+Open the next upcoming meeting instead of the current one.
 .SH DATE FORMATS
 The
 .B \-\-from
@@ -90,7 +149,14 @@ Current date and time.
 ISO 8601 date (e.g.,
 .BR 2026\-03\-15 ).
 .SH OUTPUT
-.SS Events
+.SS Text Output (default for TTY)
+Events are grouped by date with bold headers.
+Each event shows time range, title, and calendar name.
+Detail lines are indented below each event showing location, meeting URL,
+attendees (as an indented list with RSVP status), and recurrence pattern.
+.SS JSON Output (default for pipes)
+.B Events
+.PP
 A JSON array of event objects.
 Each object contains:
 .TP
@@ -118,6 +184,9 @@ Event notes, or null.
 .B url
 Event URL, or null.
 .TP
+.B meetingUrl
+Detected meeting URL (Zoom, Google Meet, Teams, WebEx), or null.
+.TP
 .B calendar
 Object with
 .BR id ,
@@ -129,14 +198,46 @@ and
 fields.
 .TP
 .B attendees
-Array of attendee name strings.
+Array of attendee objects, each with
+.BR name ,
+.BR email ,
+.BR status ,
+.BR role ,
+and
+.B isCurrentUser
+fields.
 .TP
+.B organizer
+Object with
+.B name
+and
+.B email
+fields, or null.
+.TP
+.B recurrence
+Object with
 .B isRecurring
-Boolean indicating whether the event is recurring.
+(boolean) and
+.B description
+(string or null) fields.
 .TP
 .B status
-Event status (e.g., "confirmed").
-.SS Calendars
+Event status (e.g., "confirmed", "tentative", "canceled").
+.TP
+.B availability
+Availability (e.g., "busy", "free", "tentative", "unavailable").
+.TP
+.B timeZone
+Event time zone identifier, or null.
+.TP
+.B creationDate
+Event creation date as ISO 8601, or null.
+.TP
+.B lastModifiedDate
+Last modification date as ISO 8601, or null.
+.PP
+.B Calendars
+.PP
 A JSON array of calendar objects.
 Each object contains:
 .TP
@@ -154,6 +255,64 @@ Calendar source (e.g., "iCloud").
 .TP
 .B color
 Hex color code (e.g., "#306793").
+.SH CONFIGURATION
+.B ical\-guy
+supports an optional TOML configuration file.
+The file is loaded from
+.I $XDG_CONFIG_HOME/ical\-guy/config.toml
+(defaults to
+.IR ~/.config/ical\-guy/config.toml ).
+CLI flags always take precedence over config values.
+.PP
+Example configuration:
+.PP
+.RS
+.nf
+[defaults]
+format = "text"
+exclude\-all\-day = false
+include\-calendars = ["Work", "Personal"]
+exclude\-calendars = ["US Holidays"]
+
+[text]
+show\-calendar = true
+show\-location = true
+show\-attendees = true
+show\-meeting\-url = true
+show\-notes = false
+.fi
+.RE
+.SH MEETING URL EXTRACTION
+The
+.B meetingUrl
+field is automatically populated when a Google Meet, Zoom,
+Microsoft Teams, or WebEx URL is found in an event's
+.BR url ,
+.BR location ,
+or
+.B notes
+fields (checked in that priority order).
+If no meeting URL is detected, the field is null.
+.SH ENVIRONMENT
+.TP
+.B NO_COLOR
+When set, disables all colored output.
+See
+.IR https://no\-color.org .
+.TP
+.B XDG_CONFIG_HOME
+Base directory for configuration files.
+Defaults to
+.IR ~/.config .
+.TP
+.B COLORTERM
+Used to detect truecolor support.
+Values of "truecolor" or "24bit" enable 24\-bit color.
+.TP
+.B TERM
+Used to detect 256\-color support when
+.B COLORTERM
+is not set.
 .SH EXAMPLES
 Show today's events:
 .PP
@@ -188,6 +347,14 @@ $ ical\-guy events \-\-from today \-\-to today+30 \-\-limit 5
 .fi
 .RE
 .PP
+Force JSON output:
+.PP
+.RS
+.nf
+$ ical\-guy events \-\-format json
+.fi
+.RE
+.PP
 List available calendars:
 .PP
 .RS
@@ -196,13 +363,37 @@ $ ical\-guy calendars
 .fi
 .RE
 .PP
-Pipe events to
-.BR jq (1)
-to filter recurring events:
+Show current meeting:
 .PP
 .RS
 .nf
-$ ical\-guy events | jq '[.[] | select(.isRecurring == true)]'
+$ ical\-guy meeting now
+.fi
+.RE
+.PP
+Open current meeting in browser:
+.PP
+.RS
+.nf
+$ ical\-guy meeting open
+.fi
+.RE
+.PP
+List today's meetings:
+.PP
+.RS
+.nf
+$ ical\-guy meeting list
+.fi
+.RE
+.PP
+Pipe JSON events to
+.BR jq (1)
+to filter by meeting URL:
+.PP
+.RS
+.nf
+$ ical\-guy events \-\-format json | jq '[.[] | select(.meetingUrl != null)]'
 .fi
 .RE
 .SH EXIT STATUS
@@ -211,7 +402,7 @@ $ ical\-guy events | jq '[.[] | select(.isRecurring == true)]'
 Success.
 .TP
 .B >0
-An error occurred (e.g., calendar access denied).
+An error occurred (e.g., calendar access denied, no current meeting).
 .SH NOTES
 On first run, macOS will prompt for calendar access permission.
 The tool requires Full Disk Access or Calendar access to be granted in

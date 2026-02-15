@@ -3,19 +3,31 @@ import Foundation
 import ICalGuyKit
 
 struct CalendarsCommand: AsyncParsableCommand {
-    static let configuration = CommandConfiguration(
-        commandName: "calendars",
-        abstract: "List available calendars as JSON."
+  static let configuration = CommandConfiguration(
+    commandName: "calendars",
+    abstract: "List available calendars."
+  )
+
+  @OptionGroup var globalOptions: GlobalOptions
+
+  func run() async throws {
+    let config = try? ConfigLoader.load()
+
+    let cli = CLIOptions(
+      format: globalOptions.format,
+      noColor: globalOptions.noColor
     )
+    let runtimeOpts = RuntimeOptions.resolve(config: config, cli: cli)
 
-    func run() async throws {
-        let store = LiveEventStore()
-        try await store.requestAccess()
+    let store = LiveEventStore()
+    try await store.requestAccess()
 
-        let service = EventService(store: store)
-        let calendars = try service.fetchCalendars()
+    let service = EventService(store: store)
+    let calendars = try service.fetchCalendars()
 
-        let data = try jsonEncode(calendars)
-        print(String(data: data, encoding: .utf8)!)
-    }
+    let isTTY = isatty(fileno(stdout)) != 0
+    let formatter = runtimeOpts.makeFormatter(isTTY: isTTY)
+    let output = try formatter.formatCalendars(calendars)
+    print(output)
+  }
 }

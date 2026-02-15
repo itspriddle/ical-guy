@@ -12,7 +12,8 @@ let package = Package(
         .library(name: "ICalGuyKit", targets: ["ICalGuyKit"])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0")
+        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
+        .package(url: "https://github.com/LebJe/TOMLKit.git", from: "0.6.0")
     ],
     targets: [
         .executableTarget(
@@ -24,7 +25,9 @@ let package = Package(
         ),
         .target(
             name: "ICalGuyKit",
-            dependencies: []
+            dependencies: [
+                .product(name: "TOMLKit", package: "TOMLKit")
+            ]
         ),
         .testTarget(
             name: "ICalGuyKitTests",
