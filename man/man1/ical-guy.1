@@ -63,6 +63,18 @@ Defaults to showing incomplete reminders.
 .B reminders lists
 List available reminder lists.
 .TP
+.B conflicts
+Detect double\-booked events in a date range.
+Excludes all\-day events by default.
+Automatically filters out canceled events, free\-availability events,
+and events the current user has declined.
+.TP
+.B free
+Find free time slots within working hours for deep work planning.
+Supports configurable working hours and minimum slot duration.
+Uses the same scheduling filters as
+.BR conflicts .
+.TP
 .B week
 Print the Calendar.app week number for a given date.
 Does not require EventKit access.
@@ -151,6 +163,79 @@ below.
 .TP
 .BI \-\-limit " n"
 Maximum number of birthdays to return.
+.SH CONFLICTS OPTIONS
+.TP
+.BI \-\-from " date"
+Start date for the query range.
+Defaults to the start of today.
+See
+.B DATE FORMATS
+below.
+.TP
+.BI \-\-to " date"
+End date for the query range.
+Defaults to the end of the start date.
+See
+.B DATE FORMATS
+below.
+.TP
+.BI \-\-include\-calendars " calendars"
+Only include events from these calendars.
+Comma\-separated list of calendar titles.
+.TP
+.BI \-\-exclude\-calendars " calendars"
+Exclude events from these calendars.
+Comma\-separated list of calendar titles.
+.TP
+.B \-\-include\-all\-day
+Include all\-day events in conflict detection (excluded by default).
+.SH FREE OPTIONS
+.TP
+.BI \-\-from " date"
+Start date for the query range.
+Defaults to the start of today.
+Use
+.B now
+to clip today's slots to remaining working time only.
+See
+.B DATE FORMATS
+below.
+.TP
+.BI \-\-to " date"
+End date for the query range.
+Defaults to the end of the start date.
+See
+.B DATE FORMATS
+below.
+.TP
+.BI \-\-include\-calendars " calendars"
+Only include events from these calendars.
+Comma\-separated list of calendar titles.
+.TP
+.BI \-\-exclude\-calendars " calendars"
+Exclude events from these calendars.
+Comma\-separated list of calendar titles.
+.TP
+.B \-\-include\-all\-day
+Include all\-day events as busy time (excluded by default).
+.TP
+.BI \-\-min\-duration " minutes"
+Minimum free slot duration in minutes.
+Defaults to 30.
+Can be configured in
+.IR config.toml .
+.TP
+.BI \-\-work\-start " HH:MM"
+Working hours start time.
+Defaults to 09:00.
+Can be configured in
+.IR config.toml .
+.TP
+.BI \-\-work\-end " HH:MM"
+Working hours end time.
+Defaults to 17:00.
+Can be configured in
+.IR config.toml .
 .SH REMINDERS OPTIONS
 The
 .B "reminders list"
@@ -471,6 +556,73 @@ Sunday of the week as YYYY\-MM\-DD.
 .TP
 .B endDate
 Saturday of the week as YYYY\-MM\-DD.
+.PP
+.B Conflicts
+.PP
+A JSON object with conflict detection results:
+.TP
+.B groups
+Array of conflict group objects, each containing
+.B events
+(array of event objects),
+.B windowStart
+(ISO 8601 datetime), and
+.B windowEnd
+(ISO 8601 datetime).
+.TP
+.B totalConflicts
+Total number of conflict groups found.
+.TP
+.B dateRange
+Object with
+.B from
+and
+.B to
+fields (ISO 8601 datetimes).
+.PP
+.B "Free Time"
+.PP
+A JSON object with free time analysis results:
+.TP
+.B days
+Array of day objects, each containing
+.B date
+(ISO 8601 datetime),
+.B dateLabel
+(formatted string),
+.B slots
+(array of free slot objects), and
+.B totalFreeMinutes
+(integer).
+Each slot object has
+.BR start ,
+.BR end ,
+.BR durationMinutes ,
+and
+.B tier
+("deep", "focus", "short", or "brief").
+.TP
+.B totalFreeMinutes
+Total free minutes across all days.
+.TP
+.B workingHours
+Object with
+.BR startHour ,
+.BR startMinute ,
+.BR endHour ,
+and
+.B endMinute
+fields.
+.TP
+.B minDurationMinutes
+Minimum slot duration filter applied.
+.TP
+.B dateRange
+Object with
+.B from
+and
+.B to
+fields (ISO 8601 datetimes).
 .SH CONFIGURATION
 .B ical\-guy
 supports an optional TOML configuration file.
@@ -496,6 +648,11 @@ show\-location = true
 show\-attendees = true
 show\-meeting\-url = true
 show\-notes = false
+
+[free]
+min\-duration = 30
+work\-start = "09:00"
+work\-end = "17:00"
 .fi
 .RE
 .SH MEETING URL EXTRACTION
@@ -672,6 +829,47 @@ Show the Sunday of the current week:
 .RS
 .nf
 $ ical\-guy week \-\-start\-date
+.fi
+.RE
+.PP
+Check for conflicts today:
+.PP
+.RS
+.nf
+$ ical\-guy conflicts
+.fi
+.RE
+.PP
+Check for conflicts this week:
+.PP
+.RS
+.nf
+$ ical\-guy conflicts \-\-from today \-\-to today+7
+.fi
+.RE
+.PP
+Find free time today:
+.PP
+.RS
+.nf
+$ ical\-guy free
+.fi
+.RE
+.PP
+Find free time from now with 1\-hour minimum slots:
+.PP
+.RS
+.nf
+$ ical\-guy free \-\-from now \-\-min\-duration 60
+.fi
+.RE
+.PP
+Find free time for the week with custom working hours:
+.PP
+.RS
+.nf
+$ ical\-guy free \-\-from today \-\-to today+5 \\
+    \-\-work\-start 08:00 \-\-work\-end 18:00
 .fi
 .RE
 .PP

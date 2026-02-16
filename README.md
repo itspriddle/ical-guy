@@ -121,6 +121,73 @@ ical-guy meeting list
 
 Meeting subcommands support `--include-calendars` and `--exclude-calendars` for filtering, and `--format`/`--no-color` for output control (except `meeting open`).
 
+### Conflicts
+
+The `conflicts` command detects double-booked events in a date range:
+
+```sh
+# Check today for conflicts
+ical-guy conflicts
+
+# Check the next week
+ical-guy conflicts --from today --to today+7
+
+# Include all-day events in conflict detection
+ical-guy conflicts --include-all-day
+
+# Filter by calendar
+ical-guy conflicts --include-calendars Work
+```
+
+Text output groups conflicts by day:
+
+```
+Monday, Feb 16, 2026
+  CONFLICT (2 events, 10:00 AM - 11:30 AM)
+    10:00 AM - 11:00 AM  Team Standup  [Work]
+    10:30 AM - 11:30 AM  1:1 with Alice  [Work]
+
+Found 1 conflict.
+```
+
+Events are automatically excluded from conflict detection if they are canceled, marked as "free" availability, or if you declined the invitation. All-day events are excluded by default (opt in with `--include-all-day`).
+
+### Free time
+
+The `free` command finds open time slots within working hours for deep work planning:
+
+```sh
+# Today's free time
+ical-guy free
+
+# Free time for the next 5 days
+ical-guy free --from today --to today+5
+
+# Free time from now (clips today to remaining time)
+ical-guy free --from now
+
+# Custom working hours and minimum slot duration
+ical-guy free --work-start 08:00 --work-end 18:00 --min-duration 60
+
+# Filter by calendar
+ical-guy free --exclude-calendars "US Holidays"
+```
+
+Text output shows free slots with duration tiers:
+
+```
+Monday, Feb 16, 2026  (3h 30m free)
+  9:00 AM - 10:00 AM  1h  [focus]
+  11:30 AM - 2:00 PM  2h 30m  [deep work]
+
+Summary: 3h 30m free across 1 day
+Working hours: 9:00 AM - 5:00 PM, minimum slot: 30 minutes
+```
+
+Duration tiers: **deep work** (2h+), **focus** (1-2h), **short** (30-60m), **brief** (<30m). The same scheduling filters as `conflicts` are applied (canceled, free-availability, and declined events are excluded).
+
+Defaults can be configured in the TOML config file (see Configuration).
+
 ### Birthdays
 
 The `birthdays` command lists upcoming birthdays from the Contacts birthday calendar:
@@ -253,6 +320,15 @@ ical-guy reminders list --from today --to today+7 --sort-by priority
 
 # All reminders as JSON piped to jq
 ical-guy reminders list --all --format json | jq '[.[] | select(.isCompleted == false)]'
+
+# Check for conflicts this week
+ical-guy conflicts --from today --to today+7
+
+# Find free time for deep work today
+ical-guy free --from now --min-duration 60
+
+# Free time for the week as JSON
+ical-guy free --from today --to today+5 --format json
 ```
 
 ### Meeting URL extraction
@@ -337,6 +413,11 @@ show-location = true
 show-attendees = true
 show-meeting-url = true
 show-notes = false
+
+[free]
+min-duration = 30                        # Minimum free slot in minutes
+work-start = "09:00"                     # Working hours start (HH:MM)
+work-end = "17:00"                       # Working hours end (HH:MM)
 ```
 
 ## Development
