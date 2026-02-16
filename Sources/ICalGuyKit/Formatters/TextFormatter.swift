@@ -25,14 +25,18 @@ public struct TextFormatterOptions: Sendable {
 public struct TextFormatter: OutputFormatter, Sendable {
   private let options: TextFormatterOptions
   private let colorizer: ANSIColorizer?
+  private let grouping: GroupingContext
   private let timeFormatter: DateFormatter
   private let dateHeaderFormatter: DateFormatter
 
   public init(
-    options: TextFormatterOptions = TextFormatterOptions(), colorizer: ANSIColorizer? = nil
+    options: TextFormatterOptions = TextFormatterOptions(),
+    colorizer: ANSIColorizer? = nil,
+    grouping: GroupingContext = GroupingContext()
   ) {
     self.options = options
     self.colorizer = colorizer
+    self.grouping = grouping
 
     let tf = DateFormatter()
     tf.dateFormat = "h:mm a"
@@ -46,24 +50,83 @@ public struct TextFormatter: OutputFormatter, Sendable {
   }
 
   public func formatEvents(_ events: [CalendarEvent]) throws -> String {
+    switch grouping.mode {
+    case .none:
+      return formatEventsFlat(events)
+    case .date:
+      return formatEventsByDate(events)
+    case .calendar:
+      return formatEventsByCalendar(events)
+    }
+  }
+
+  private func formatEventsFlat(_ events: [CalendarEvent]) -> String {
     if events.isEmpty { return "No events." }
+    return events.map { formatEvent($0) }.joined(separator: "\n")
+  }
+
+  private func formatEventsByDate(_ events: [CalendarEvent]) -> String {
+    let grouper = EventGrouper()
+    let groups = grouper.groupByDate(
+      events,
+      from: grouping.dateRange?.from,
+      to: grouping.dateRange?.to,
+      showEmptyDates: grouping.showEmptyDates
+    )
+
+    if groups.isEmpty { return "No events." }
+    if groups.allSatisfy({ $0.events.isEmpty }) && !grouping.showEmptyDates {
+      return "No events."
+    }
 
     var lines: [String] = []
-    var currentDate: String?
+    for (index, group) in groups.enumerated() {
+      if index > 0 { lines.append("") }
+      let dateHeader = formatDateGroupHeader(group.date)
+      let header = colorizer?.bold(dateHeader) ?? dateHeader
+      lines.append(header)
 
-    for event in events {
-      let dateKey = dateHeaderFormatter.string(from: event.startDate)
-      if dateKey != currentDate {
-        if currentDate != nil { lines.append("") }
-        let header = colorizer?.bold(dateKey) ?? dateKey
-        lines.append(header)
-        currentDate = dateKey
+      if group.events.isEmpty {
+        lines.append("  \(dim("No events."))")
+      } else {
+        for event in group.events {
+          lines.append(formatEvent(event))
+        }
       }
-
-      lines.append(formatEvent(event))
     }
 
     return lines.joined(separator: "\n")
+  }
+
+  private func formatEventsByCalendar(_ events: [CalendarEvent]) -> String {
+    if events.isEmpty { return "No events." }
+
+    let grouper = EventGrouper()
+    let groups = grouper.groupByCalendar(events)
+
+    var lines: [String] = []
+    for (index, group) in groups.enumerated() {
+      if index > 0 { lines.append("") }
+      let header =
+        colorizer?.colorize(group.calendar.title, hexColor: group.calendar.color)
+        ?? group.calendar.title
+      lines.append(colorizer?.bold(header) ?? header)
+
+      for event in group.events {
+        lines.append(formatEvent(event))
+      }
+    }
+
+    return lines.joined(separator: "\n")
+  }
+
+  private func formatDateGroupHeader(_ isoDate: String) -> String {
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withFullDate]
+    if let date = formatter.date(from: isoDate) {
+      return dateHeaderFormatter.string(from: date)
+    }
+    return isoDate
   }
 
   public func formatCalendars(_ calendars: [CalendarInfo]) throws -> String {
@@ -80,7 +143,30 @@ public struct TextFormatter: OutputFormatter, Sendable {
   public func formatReminders(_ reminders: [Reminder]) throws -> String {
     if reminders.isEmpty { return "No reminders." }
 
+    if grouping.mode == .calendar {
+      return formatRemindersByList(reminders)
+    }
     return reminders.map { formatReminder($0) }.joined(separator: "\n")
+  }
+
+  private func formatRemindersByList(_ reminders: [Reminder]) -> String {
+    let grouper = EventGrouper()
+    let groups = grouper.groupRemindersByList(reminders)
+
+    var lines: [String] = []
+    for (index, group) in groups.enumerated() {
+      if index > 0 { lines.append("") }
+      let header =
+        colorizer?.colorize(group.list.title, hexColor: group.list.color)
+        ?? group.list.title
+      lines.append(colorizer?.bold(header) ?? header)
+
+      for reminder in group.reminders {
+        lines.append(formatReminder(reminder))
+      }
+    }
+
+    return lines.joined(separator: "\n")
   }
 
   public func formatBirthdays(_ birthdays: [Birthday]) throws -> String {

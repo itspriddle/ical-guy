@@ -90,7 +90,8 @@ struct RemindersListCommand: AsyncParsableCommand {
     let reminders = try await service.fetchReminders(options: options)
 
     let isTTY = isatty(fileno(stdout)) != 0
-    let formatter = makeFormatter(globalOptions, isTTY: isTTY)
+    let grouping = makeReminderGrouping(globalOptions)
+    let formatter = makeFormatter(globalOptions, isTTY: isTTY, grouping: grouping)
     let output = try formatter.formatReminders(reminders)
     print(output)
   }
@@ -126,10 +127,24 @@ private func parseCSV(_ value: String?) -> [String]? {
   value?.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
 }
 
-private func makeFormatter(_ options: GlobalOptions, isTTY: Bool) -> any OutputFormatter {
+private func makeReminderGrouping(_ options: GlobalOptions) -> GroupingContext {
+  let mode: GroupingMode
+  if let groupBy = options.groupBy, let parsed = GroupingMode(rawValue: groupBy) {
+    mode = parsed
+  } else {
+    mode = .none
+  }
+  return GroupingContext(mode: mode)
+}
+
+private func makeFormatter(
+  _ options: GlobalOptions, isTTY: Bool, grouping: GroupingContext = GroupingContext()
+) -> any OutputFormatter {
   if let format = options.format {
     let outputFormat = OutputFormat(rawValue: format) ?? (isTTY ? .text : .json)
-    return FormatterFactory.create(format: outputFormat, isTTY: isTTY, noColor: options.noColor)
+    return FormatterFactory.create(
+      format: outputFormat, isTTY: isTTY, noColor: options.noColor, grouping: grouping
+    )
   }
-  return FormatterFactory.autoDetect(isTTY: isTTY, noColor: options.noColor)
+  return FormatterFactory.autoDetect(isTTY: isTTY, noColor: options.noColor, grouping: grouping)
 }

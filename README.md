@@ -90,12 +90,40 @@ $ ical-guy events --help
 OPTIONS:
   --format <format>       Output format: json or text (auto-detects based on TTY).
   --no-color              Disable colored output.
+  --group-by <mode>       Group output: none, date, or calendar.
+  --show-empty-dates      Show dates with no events (implies --group-by date).
   --from <from>           Start date (ISO 8601, 'today', 'tomorrow', 'yesterday', 'today+N').
   --to <to>               End date (same formats as --from).
   --include-calendars     Only include these calendars (comma-separated titles).
   --exclude-calendars     Exclude these calendars (comma-separated titles).
   --exclude-all-day       Exclude all-day events.
   --limit <limit>         Maximum number of events to output.
+```
+
+### Grouping
+
+Events can be grouped by date or calendar using `--group-by`:
+
+```sh
+# Group by date (auto-activates for multi-day ranges)
+ical-guy events --from today --to today+3
+
+# Explicitly group by calendar
+ical-guy events --from today --to today+7 --group-by calendar
+
+# Show empty dates (implies --group-by date)
+ical-guy events --from today --to today+7 --show-empty-dates
+
+# Flat list with no grouping
+ical-guy events --group-by none
+```
+
+Grouping auto-detection: multi-day ranges default to `--group-by date`, single-day ranges default to `--group-by none`. The `--show-empty-dates` flag implies `--group-by date`.
+
+Reminders can also be grouped by list:
+
+```sh
+ical-guy reminders list --group-by calendar
 ```
 
 ### Meetings
@@ -329,6 +357,15 @@ ical-guy free --from now --min-duration 60
 
 # Free time for the week as JSON
 ical-guy free --from today --to today+5 --format json
+
+# This week's events grouped by calendar
+ical-guy events --from today --to today+7 --group-by calendar
+
+# Show empty dates in a range
+ical-guy events --from today --to today+7 --show-empty-dates
+
+# Reminders grouped by list
+ical-guy reminders list --group-by calendar
 ```
 
 ### Meeting URL extraction
@@ -349,49 +386,84 @@ The `meetingUrl` field is automatically populated when a Google Meet, Zoom, Micr
 
 ### JSON output
 
-When using `--format json` (or piping), events include rich structured data:
+When using `--format json` (or piping), events include rich structured data. The JSON structure depends on the `--group-by` mode:
+
+**Flat (default, `--group-by none`):** A JSON array of event objects.
+
+**Grouped by date (`--group-by date`):** An array of date group objects:
 
 ```json
 [
   {
-    "id": "E3A4B5C6-...",
-    "title": "Team Standup",
-    "startDate": "2024-03-15T14:00:00Z",
-    "endDate": "2024-03-15T14:30:00Z",
-    "isAllDay": false,
-    "location": "Conference Room B",
-    "notes": "Weekly sync",
-    "url": null,
-    "meetingUrl": "https://meet.google.com/abc-defg-hij",
-    "calendar": {
-      "id": "A1B2C3D4-...",
-      "title": "Work",
-      "type": "calDAV",
-      "source": "iCloud",
-      "color": "#1BADF8"
-    },
-    "attendees": [
-      {
-        "name": "Alice Smith",
-        "email": "alice@example.com",
-        "status": "accepted",
-        "role": "required",
-        "isCurrentUser": false
-      }
-    ],
-    "organizer": {
-      "name": "Bob Jones",
-      "email": "bob@example.com"
-    },
-    "recurrence": {
-      "isRecurring": true,
-      "description": "Every weekday"
-    },
-    "status": "confirmed",
-    "availability": "busy",
-    "timeZone": "America/New_York",
-    "creationDate": "2024-01-15T10:00:00Z",
-    "lastModifiedDate": "2024-03-10T08:30:00Z"
+    "date": "2024-03-15",
+    "events": [...]
+  }
+]
+```
+
+**Grouped by calendar (`--group-by calendar`):** An array of calendar group objects:
+
+```json
+[
+  {
+    "calendar": { "id": "...", "title": "Work", ... },
+    "events": [...]
+  }
+]
+```
+
+Each event object contains:
+
+```json
+{
+  "id": "E3A4B5C6-...",
+  "title": "Team Standup",
+  "startDate": "2024-03-15T14:00:00Z",
+  "endDate": "2024-03-15T14:30:00Z",
+  "isAllDay": false,
+  "location": "Conference Room B",
+  "notes": "Weekly sync",
+  "url": null,
+  "meetingUrl": "https://meet.google.com/abc-defg-hij",
+  "calendar": {
+    "id": "A1B2C3D4-...",
+    "title": "Work",
+    "type": "calDAV",
+    "source": "iCloud",
+    "color": "#1BADF8"
+  },
+  "attendees": [
+    {
+      "name": "Alice Smith",
+      "email": "alice@example.com",
+      "status": "accepted",
+      "role": "required",
+      "isCurrentUser": false
+    }
+  ],
+  "organizer": {
+    "name": "Bob Jones",
+    "email": "bob@example.com"
+  },
+  "recurrence": {
+    "isRecurring": true,
+    "description": "Every weekday"
+  },
+  "status": "confirmed",
+  "availability": "busy",
+  "timeZone": "America/New_York",
+  "creationDate": "2024-01-15T10:00:00Z",
+  "lastModifiedDate": "2024-03-10T08:30:00Z"
+}
+```
+
+Reminders with `--group-by calendar` produce an array of list group objects:
+
+```json
+[
+  {
+    "list": { "id": "...", "title": "Shopping", ... },
+    "reminders": [...]
   }
 ]
 ```
@@ -406,6 +478,8 @@ format = "text"                          # "text" or "json"
 exclude-all-day = false
 include-calendars = ["Work", "Personal"]
 exclude-calendars = ["US Holidays"]
+group-by = "date"                        # "none", "date", or "calendar"
+show-empty-dates = true
 
 [text]
 show-calendar = true

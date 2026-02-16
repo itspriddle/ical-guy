@@ -18,11 +18,12 @@ public struct FormatterFactory: Sendable {
     format: OutputFormat,
     isTTY: Bool,
     noColor: Bool,
-    textOptions: TextFormatterOptions = TextFormatterOptions()
+    textOptions: TextFormatterOptions = TextFormatterOptions(),
+    grouping: GroupingContext = GroupingContext()
   ) -> any OutputFormatter {
     switch format {
     case .json:
-      return JSONFormatter(pretty: isTTY)
+      return JSONFormatter(pretty: isTTY, grouping: grouping)
     case .text:
       let colorizer: ANSIColorizer?
       if noColor {
@@ -30,7 +31,7 @@ public struct FormatterFactory: Sendable {
       } else {
         colorizer = ANSIColorizer.detect(isTTY: isTTY)
       }
-      return TextFormatter(options: textOptions, colorizer: colorizer)
+      return TextFormatter(options: textOptions, colorizer: colorizer, grouping: grouping)
     }
   }
 
@@ -38,9 +39,13 @@ public struct FormatterFactory: Sendable {
   public static func autoDetect(
     isTTY: Bool,
     noColor: Bool,
-    textOptions: TextFormatterOptions = TextFormatterOptions()
+    textOptions: TextFormatterOptions = TextFormatterOptions(),
+    grouping: GroupingContext = GroupingContext()
   ) -> any OutputFormatter {
     let format: OutputFormat = isTTY ? .text : .json
-    return create(format: format, isTTY: isTTY, noColor: noColor, textOptions: textOptions)
+    return create(
+      format: format, isTTY: isTTY, noColor: noColor, textOptions: textOptions,
+      grouping: grouping
+    )
   }
 }

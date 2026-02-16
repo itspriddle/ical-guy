@@ -8,6 +8,8 @@ public struct CLIOptions: Sendable {
   public let includeCalendars: [String]?
   public let excludeCalendars: [String]?
   public let limit: Int?
+  public let groupBy: String?
+  public let showEmptyDates: Bool
 
   public init(
     format: String? = nil,
@@ -15,7 +17,9 @@ public struct CLIOptions: Sendable {
     excludeAllDay: Bool = false,
     includeCalendars: [String]? = nil,
     excludeCalendars: [String]? = nil,
-    limit: Int? = nil
+    limit: Int? = nil,
+    groupBy: String? = nil,
+    showEmptyDates: Bool = false
   ) {
     self.format = format
     self.noColor = noColor
@@ -23,6 +27,8 @@ public struct CLIOptions: Sendable {
     self.includeCalendars = includeCalendars
     self.excludeCalendars = excludeCalendars
     self.limit = limit
+    self.groupBy = groupBy
+    self.showEmptyDates = showEmptyDates
   }
 }
 
@@ -35,6 +41,8 @@ public struct RuntimeOptions: Sendable {
   public let excludeCalendars: [String]?
   public let limit: Int?
   public let textOptions: TextFormatterOptions
+  public let groupBy: GroupingMode?
+  public let showEmptyDates: Bool
 
   /// Merge config defaults with CLI overrides.
   /// CLI values take precedence when non-nil.
@@ -52,6 +60,17 @@ public struct RuntimeOptions: Sendable {
     let includeCalendars = cli.includeCalendars ?? config?.includeCalendars
     let excludeCalendars = cli.excludeCalendars ?? config?.excludeCalendars
 
+    let groupBy: GroupingMode?
+    if let g = cli.groupBy {
+      groupBy = GroupingMode(rawValue: g)
+    } else if let g = config?.groupBy {
+      groupBy = GroupingMode(rawValue: g)
+    } else {
+      groupBy = nil
+    }
+
+    let showEmptyDates = cli.showEmptyDates || (config?.showEmptyDates ?? false)
+
     let textOptions = TextFormatterOptions(
       showCalendar: config?.showCalendar ?? true,
       showLocation: config?.showLocation ?? true,
@@ -67,7 +86,9 @@ public struct RuntimeOptions: Sendable {
       includeCalendars: includeCalendars,
       excludeCalendars: excludeCalendars,
       limit: cli.limit,
-      textOptions: textOptions
+      textOptions: textOptions,
+      groupBy: groupBy,
+      showEmptyDates: showEmptyDates
     )
   }
 
@@ -82,12 +103,42 @@ public struct RuntimeOptions: Sendable {
     )
   }
 
-  public func makeFormatter(isTTY: Bool) -> any OutputFormatter {
+  /// Build a GroupingContext, applying auto-detection logic.
+  /// - `showEmptyDates` implies `.date` grouping
+  /// - Multi-day ranges default to `.date` grouping
+  /// - Single-day ranges default to `.none`
+  public func makeGroupingContext(
+    dateRange: DateRange?, isMultiDay: Bool
+  ) -> GroupingContext {
+    let mode: GroupingMode
+    if let groupBy {
+      mode = groupBy
+    } else if showEmptyDates {
+      mode = .date
+    } else if isMultiDay {
+      mode = .date
+    } else {
+      mode = .none
+    }
+
+    return GroupingContext(
+      mode: mode,
+      showEmptyDates: showEmptyDates,
+      dateRange: dateRange
+    )
+  }
+
+  public func makeFormatter(
+    isTTY: Bool, grouping: GroupingContext = GroupingContext()
+  ) -> any OutputFormatter {
     if let format {
       return FormatterFactory.create(
-        format: format, isTTY: isTTY, noColor: noColor, textOptions: textOptions
+        format: format, isTTY: isTTY, noColor: noColor, textOptions: textOptions,
+        grouping: grouping
       )
     }
-    return FormatterFactory.autoDetect(isTTY: isTTY, noColor: noColor, textOptions: textOptions)
+    return FormatterFactory.autoDetect(
+      isTTY: isTTY, noColor: noColor, textOptions: textOptions, grouping: grouping
+    )
   }
 }

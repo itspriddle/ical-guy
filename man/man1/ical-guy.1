@@ -93,6 +93,25 @@ Auto\-detects based on whether stdout is a TTY if not specified.
 .TP
 .B \-\-no\-color
 Disable colored output.
+.TP
+.BI \-\-group\-by " mode"
+Group output by the given mode.
+Valid values:
+.BR none " (flat list),"
+.BR date " (group by date),"
+.BR calendar " (group by calendar/list)."
+For events, multi\-day ranges default to
+.BR date ;
+single\-day ranges default to
+.BR none .
+For reminders,
+.B calendar
+groups by reminder list.
+.TP
+.B \-\-show\-empty\-dates
+Show dates with no events when grouping by date.
+Implies
+.BR "\-\-group\-by date" .
 .SH EVENTS OPTIONS
 .TP
 .BI \-\-from " date"
@@ -345,15 +364,75 @@ ISO 8601 date (e.g.,
 .BR 2026\-03\-15 ).
 .SH OUTPUT
 .SS Text Output (default for TTY)
-Events are grouped by date with bold headers.
+Event display depends on the
+.B \-\-group\-by
+mode.
+With
+.BR date ,
+events are grouped under bold date headers.
+With
+.BR calendar ,
+events are grouped under colored calendar name headers.
+With
+.BR none ,
+events are shown as a flat list without headers.
+.PP
 Each event shows time range, title, and calendar name.
 Detail lines are indented below each event showing location, meeting URL,
 attendees (as an indented list with RSVP status), and recurrence pattern.
+.PP
+When
+.B \-\-show\-empty\-dates
+is used, dates with no events display
+"No events." under the date header.
+.PP
+Reminders with
+.B "\-\-group\-by calendar"
+are grouped under colored list name headers.
 .SS JSON Output (default for pipes)
 .B Events
 .PP
-A JSON array of event objects.
-Each object contains:
+The JSON structure depends on the
+.B \-\-group\-by
+mode:
+.PP
+With
+.B \-\-group\-by none
+(default for single\-day ranges), a JSON array of event objects.
+.PP
+With
+.BR "\-\-group\-by date" ,
+a JSON array of date group objects.
+Each group has a
+.B date
+field (ISO 8601 date string) and an
+.B events
+array.
+With
+.BR \-\-show\-empty\-dates ,
+dates with no events have an empty
+.B events
+array.
+.PP
+With
+.BR "\-\-group\-by calendar" ,
+a JSON array of calendar group objects.
+Each group has a
+.B calendar
+object and an
+.B events
+array.
+.PP
+Reminders with
+.B "\-\-group\-by calendar"
+produce an array of list group objects.
+Each group has a
+.B list
+object and a
+.B reminders
+array.
+.PP
+Each event object contains:
 .TP
 .B id
 Unique event identifier.
@@ -641,6 +720,8 @@ format = "text"
 exclude\-all\-day = false
 include\-calendars = ["Work", "Personal"]
 exclude\-calendars = ["US Holidays"]
+group\-by = "date"
+show\-empty\-dates = true
 
 [text]
 show\-calendar = true
@@ -870,6 +951,38 @@ Find free time for the week with custom working hours:
 .nf
 $ ical\-guy free \-\-from today \-\-to today+5 \\
     \-\-work\-start 08:00 \-\-work\-end 18:00
+.fi
+.RE
+.PP
+Show events grouped by calendar:
+.PP
+.RS
+.nf
+$ ical\-guy events \-\-from today \-\-to today+7 \-\-group\-by calendar
+.fi
+.RE
+.PP
+Show a week of events with empty dates filled in:
+.PP
+.RS
+.nf
+$ ical\-guy events \-\-from today \-\-to today+7 \-\-show\-empty\-dates
+.fi
+.RE
+.PP
+Flat event list with no grouping headers:
+.PP
+.RS
+.nf
+$ ical\-guy events \-\-group\-by none
+.fi
+.RE
+.PP
+Reminders grouped by list:
+.PP
+.RS
+.nf
+$ ical\-guy reminders list \-\-group\-by calendar
 .fi
 .RE
 .PP
