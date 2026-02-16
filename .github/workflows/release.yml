@@ -43,7 +43,7 @@ jobs:
         run: |
           gh workflow run bump-formula.yml \
             -f formula=ical-guy \
-            -f version=${GITHUB_REF##refs/tags/} \
+            -f "version=${GITHUB_REF##refs/tags/}" \
             -R itspriddle/homebrew-brews
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
