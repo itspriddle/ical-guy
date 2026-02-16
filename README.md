@@ -7,9 +7,9 @@
 
 > I'm not your buddy, guy.
 
-A modern Swift CLI for querying macOS calendar events. Built with EventKit as a replacement for the now-unmaintained icalBuddy.
+A modern Swift CLI for querying macOS calendar events and reminders. Built with EventKit as a replacement for the now-unmaintained icalBuddy.
 
-Supports text and JSON output, ANSI colors, meeting detection (Zoom, Google Meet, Teams, WebEx), and TOML configuration.
+Supports text and JSON output, ANSI colors, meeting detection (Zoom, Google Meet, Teams, WebEx), reminders, and TOML configuration.
 
 Requires macOS 14 (Sonoma) or later.
 
@@ -40,7 +40,7 @@ mv ical-guy /usr/local/bin/
 
 ## Usage
 
-On first run, macOS will prompt for calendar access. If denied, grant it in **System Settings > Privacy & Security > Calendars**.
+On first run, macOS will prompt for calendar access. Grant it in **System Settings > Privacy & Security > Calendars**. Reminder commands will separately prompt for reminders access (**Privacy & Security > Reminders**).
 
 ### Output format
 
@@ -121,6 +121,44 @@ ical-guy meeting list
 
 Meeting subcommands support `--include-calendars` and `--exclude-calendars` for filtering, and `--format`/`--no-color` for output control (except `meeting open`).
 
+### Reminders
+
+The `reminders` command group provides read-only access to macOS Reminders:
+
+```sh
+# List incomplete reminders (default)
+ical-guy reminders
+
+# List completed reminders
+ical-guy reminders list --completed
+
+# List all reminders (completed and incomplete)
+ical-guy reminders list --all
+
+# Filter by due date range
+ical-guy reminders list --from today --to today+7
+
+# Filter by reminder list
+ical-guy reminders list --include-lists "Work,Shopping"
+ical-guy reminders list --exclude-lists "Birthdays"
+
+# Sort and limit
+ical-guy reminders list --sort-by priority --limit 10
+
+# List available reminder lists
+ical-guy reminders lists
+```
+
+Text output shows a checkbox, title, list name, due date, and priority:
+
+```
+[ ] Buy groceries  [Shopping]  due: Feb 20, 2026  !high
+[ ] Call dentist  [Personal]  due: Feb 22, 2026
+[x] Send report  [Work]
+```
+
+Reminder subcommands support `--format`/`--no-color` for output control.
+
 ### Week number
 
 The `week` command prints the Calendar.app week number for a given date:
@@ -177,6 +215,12 @@ ical-guy events --from today --to today+30 --limit 5
 
 # Open current meeting in browser
 ical-guy meeting open
+
+# High priority reminders due this week
+ical-guy reminders list --from today --to today+7 --sort-by priority
+
+# All reminders as JSON piped to jq
+ical-guy reminders list --all --format json | jq '[.[] | select(.isCompleted == false)]'
 ```
 
 ### Meeting URL extraction
