@@ -23,8 +23,7 @@ public struct ANSIColorizer: Sendable {
     if environment["NO_COLOR"] != nil { return nil }
     if !isTTY { return nil }
 
-    if let colorterm = environment["COLORTERM"]?.lowercased(),
-      colorterm == "truecolor" || colorterm == "24bit" {
+    if let ct = environment["COLORTERM"]?.lowercased(), ct == "truecolor" || ct == "24bit" {
       return ANSIColorizer(capability: .truecolor)
     }
 
