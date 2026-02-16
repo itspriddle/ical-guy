@@ -75,6 +75,51 @@ public struct TextFormatter: OutputFormatter, Sendable {
     }.joined(separator: "\n")
   }
 
+  // MARK: - Reminders
+
+  public func formatReminders(_ reminders: [Reminder]) throws -> String {
+    if reminders.isEmpty { return "No reminders." }
+
+    return reminders.map { formatReminder($0) }.joined(separator: "\n")
+  }
+
+  public func formatReminderLists(_ lists: [ReminderListInfo]) throws -> String {
+    if lists.isEmpty { return "No reminder lists." }
+
+    return lists.map { list in
+      let name = colorizer?.colorize(list.title, hexColor: list.color) ?? list.title
+      return "\(name) (\(list.source))"
+    }.joined(separator: "\n")
+  }
+
+  private func formatReminder(_ reminder: Reminder) -> String {
+    let checkbox = reminder.isCompleted ? "[x]" : "[ ]"
+    let title = colorizer?.bold(reminder.title) ?? reminder.title
+    let listName =
+      colorizer?.colorize(
+        "[\(reminder.list.title)]", hexColor: reminder.list.color
+      ) ?? "[\(reminder.list.title)]"
+
+    var parts = ["\(checkbox) \(title)  \(listName)"]
+
+    if let dueDate = reminder.dueDate {
+      parts.append(dim("due: \(dueDateFormatter.string(from: dueDate))"))
+    }
+
+    if reminder.priority != .none {
+      parts.append(dim("!\(reminder.priority.rawValue)"))
+    }
+
+    return parts.joined(separator: "  ")
+  }
+
+  private var dueDateFormatter: DateFormatter {
+    let df = DateFormatter()
+    df.dateFormat = "MMM d, yyyy"
+    df.locale = Locale(identifier: "en_US_POSIX")
+    return df
+  }
+
   // MARK: - Event Formatting
 
   private func formatEvent(_ event: CalendarEvent) -> String {

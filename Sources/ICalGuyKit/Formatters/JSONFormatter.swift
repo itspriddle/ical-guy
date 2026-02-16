@@ -15,6 +15,14 @@ public struct JSONFormatter: OutputFormatter, Sendable {
     try encode(calendars)
   }
 
+  public func formatReminders(_ reminders: [Reminder]) throws -> String {
+    try encode(reminders)
+  }
+
+  public func formatReminderLists(_ lists: [ReminderListInfo]) throws -> String {
+    try encode(lists)
+  }
+
   private func encode<T: Encodable>(_ value: T) throws -> String {
     let encoder = JSONEncoder()
     encoder.dateEncodingStrategy = .iso8601

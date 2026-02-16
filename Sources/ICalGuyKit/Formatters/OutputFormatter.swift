@@ -8,6 +8,8 @@ public enum OutputFormat: String, Sendable, CaseIterable {
 public protocol OutputFormatter: Sendable {
   func formatEvents(_ events: [CalendarEvent]) throws -> String
   func formatCalendars(_ calendars: [CalendarInfo]) throws -> String
+  func formatReminders(_ reminders: [Reminder]) throws -> String
+  func formatReminderLists(_ lists: [ReminderListInfo]) throws -> String
 }
 
 public struct FormatterFactory: Sendable {

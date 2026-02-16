@@ -8,6 +8,7 @@ struct ICalGuy: AsyncParsableCommand {
     version: "0.4.0",
     subcommands: [
       EventsCommand.self, CalendarsCommand.self, MeetingCommand.self, WeekCommand.self,
+      RemindersCommand.self,
     ],
     defaultSubcommand: EventsCommand.self
   )
