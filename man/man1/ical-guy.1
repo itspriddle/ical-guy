@@ -51,6 +51,10 @@ to open the next upcoming meeting instead.
 .B meeting list
 List today's meetings (events with detected video call URLs).
 .TP
+.B birthdays
+List upcoming birthdays from the Contacts birthday calendar.
+Defaults to the next 30 days.
+.TP
 .B reminders list
 List reminders.
 This is the default reminders subcommand.
@@ -129,6 +133,24 @@ subcommand also supports:
 .TP
 .B \-\-next
 Open the next upcoming meeting instead of the current one.
+.SH BIRTHDAYS OPTIONS
+.TP
+.BI \-\-from " date"
+Start date for the query range.
+Defaults to the start of today.
+See
+.B DATE FORMATS
+below.
+.TP
+.BI \-\-to " date"
+End date for the query range.
+Defaults to 30 days from the start date.
+See
+.B DATE FORMATS
+below.
+.TP
+.BI \-\-limit " n"
+Maximum number of birthdays to return.
 .SH REMINDERS OPTIONS
 The
 .B "reminders list"
@@ -412,6 +434,27 @@ Hex color code (e.g., "#FF9500").
 .B source
 List source (e.g., "iCloud").
 .PP
+.B Birthdays
+.PP
+A JSON array of birthday objects.
+Each object contains:
+.TP
+.B name
+Person's name.
+.TP
+.B date
+Birthday date as an ISO 8601 datetime string.
+.TP
+.B calendar
+Object with
+.BR id ,
+.BR title ,
+.BR type ,
+.BR source ,
+and
+.B color
+fields.
+.PP
 .B Week
 .PP
 A JSON object with week information:
@@ -557,6 +600,22 @@ List today's meetings:
 .RS
 .nf
 $ ical\-guy meeting list
+.fi
+.RE
+.PP
+Show upcoming birthdays:
+.PP
+.RS
+.nf
+$ ical\-guy birthdays
+.fi
+.RE
+.PP
+Show birthdays in the next 90 days:
+.PP
+.RS
+.nf
+$ ical\-guy birthdays \-\-from today \-\-to today+90
 .fi
 .RE
 .PP

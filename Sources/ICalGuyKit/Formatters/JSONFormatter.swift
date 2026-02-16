@@ -23,6 +23,10 @@ public struct JSONFormatter: OutputFormatter, Sendable {
     try encode(lists)
   }
 
+  public func formatBirthdays(_ birthdays: [Birthday]) throws -> String {
+    try encode(birthdays)
+  }
+
   private func encode<T: Encodable>(_ value: T) throws -> String {
     let encoder = JSONEncoder()
     encoder.dateEncodingStrategy = .iso8601

@@ -83,6 +83,27 @@ public struct TextFormatter: OutputFormatter, Sendable {
     return reminders.map { formatReminder($0) }.joined(separator: "\n")
   }
 
+  public func formatBirthdays(_ birthdays: [Birthday]) throws -> String {
+    if birthdays.isEmpty { return "No birthdays." }
+
+    var lines: [String] = []
+    var currentDate: String?
+
+    for birthday in birthdays {
+      let dateKey = dateHeaderFormatter.string(from: birthday.date)
+      if dateKey != currentDate {
+        if currentDate != nil { lines.append("") }
+        let header = colorizer?.bold(dateKey) ?? dateKey
+        lines.append(header)
+        currentDate = dateKey
+      }
+
+      lines.append("  \(birthday.name)")
+    }
+
+    return lines.joined(separator: "\n")
+  }
+
   public func formatReminderLists(_ lists: [ReminderListInfo]) throws -> String {
     if lists.isEmpty { return "No reminder lists." }
 

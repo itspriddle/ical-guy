@@ -121,6 +121,35 @@ ical-guy meeting list
 
 Meeting subcommands support `--include-calendars` and `--exclude-calendars` for filtering, and `--format`/`--no-color` for output control (except `meeting open`).
 
+### Birthdays
+
+The `birthdays` command lists upcoming birthdays from the Contacts birthday calendar:
+
+```sh
+# Upcoming birthdays (next 30 days)
+ical-guy birthdays
+
+# Birthdays in a specific range
+ical-guy birthdays --from today --to today+90
+
+# Limit results
+ical-guy birthdays --limit 5
+
+# JSON output
+ical-guy birthdays --format json
+```
+
+Text output groups birthdays by date:
+
+```
+Monday, Feb 16, 2026
+  John Smith
+  Jane Doe
+
+Thursday, Feb 19, 2026
+  Bob Jones
+```
+
 ### Reminders
 
 The `reminders` command group provides read-only access to macOS Reminders:
@@ -215,6 +244,9 @@ ical-guy events --from today --to today+30 --limit 5
 
 # Open current meeting in browser
 ical-guy meeting open
+
+# Upcoming birthdays in the next 90 days
+ical-guy birthdays --from today --to today+90
 
 # High priority reminders due this week
 ical-guy reminders list --from today --to today+7 --sort-by priority
