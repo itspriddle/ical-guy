@@ -74,6 +74,41 @@ public struct EventService: Sendable {
     return rawEvents.map { convertToCalendarEvent($0) }
   }
 
+  public func fetchBirthdays(from: Date, to: Date, limit: Int? = nil) throws -> [Birthday] {
+    let query = EventQuery(startDate: from, endDate: to)
+    var rawEvents = try store.events(matching: query)
+
+    // Filter to birthday calendars only
+    rawEvents = rawEvents.filter { $0.calendarType == "birthday" }
+
+    // Sort by date, then name
+    rawEvents.sort { a, b in
+      if a.startDate == b.startDate {
+        return a.title.localizedCaseInsensitiveCompare(b.title) == .orderedAscending
+      }
+      return a.startDate < b.startDate
+    }
+
+    // Apply limit
+    if let limit, limit > 0 {
+      rawEvents = Array(rawEvents.prefix(limit))
+    }
+
+    return rawEvents.map { raw in
+      Birthday(
+        name: raw.title,
+        date: raw.startDate,
+        calendar: CalendarInfo(
+          id: raw.calendarId,
+          title: raw.calendarTitle,
+          type: raw.calendarType,
+          source: raw.calendarSource,
+          color: raw.calendarColor
+        )
+      )
+    }
+  }
+
   public func fetchCalendars() throws -> [CalendarInfo] {
     try store.calendars().map { raw in
       CalendarInfo(

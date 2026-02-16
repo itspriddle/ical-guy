@@ -10,6 +10,7 @@ public protocol OutputFormatter: Sendable {
   func formatCalendars(_ calendars: [CalendarInfo]) throws -> String
   func formatReminders(_ reminders: [Reminder]) throws -> String
   func formatReminderLists(_ lists: [ReminderListInfo]) throws -> String
+  func formatBirthdays(_ birthdays: [Birthday]) throws -> String
 }
 
 public struct FormatterFactory: Sendable {
