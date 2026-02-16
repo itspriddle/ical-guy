@@ -5,6 +5,8 @@ public struct FreeTimeServiceOptions: Sendable {
   public let to: Date
   public let includeCalendars: [String]?
   public let excludeCalendars: [String]?
+  public let includeCalendarTypes: [String]?
+  public let excludeCalendarTypes: [String]?
   public let includeAllDay: Bool
   public let minDuration: Int
   public let workingHours: WorkingHours
@@ -14,6 +16,8 @@ public struct FreeTimeServiceOptions: Sendable {
     to: Date,
     includeCalendars: [String]? = nil,
     excludeCalendars: [String]? = nil,
+    includeCalendarTypes: [String]? = nil,
+    excludeCalendarTypes: [String]? = nil,
     includeAllDay: Bool = false,
     minDuration: Int = 30,
     workingHours: WorkingHours = .default
@@ -22,6 +26,8 @@ public struct FreeTimeServiceOptions: Sendable {
     self.to = to
     self.includeCalendars = includeCalendars
     self.excludeCalendars = excludeCalendars
+    self.includeCalendarTypes = includeCalendarTypes
+    self.excludeCalendarTypes = excludeCalendarTypes
     self.includeAllDay = includeAllDay
     self.minDuration = minDuration
     self.workingHours = workingHours
@@ -59,6 +65,8 @@ public struct FreeTimeService: Sendable {
       to: options.to,
       includeCalendars: options.includeCalendars,
       excludeCalendars: options.excludeCalendars,
+      includeCalendarTypes: options.includeCalendarTypes,
+      excludeCalendarTypes: options.excludeCalendarTypes,
       excludeAllDay: !options.includeAllDay
     )
     let events = try eventService.fetchEvents(options: serviceOptions)

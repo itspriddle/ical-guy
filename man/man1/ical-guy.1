@@ -136,6 +136,20 @@ Comma\-separated list of calendar titles.
 Exclude events from these calendars.
 Comma\-separated list of calendar titles.
 .TP
+.BI \-\-include\-cal\-types " types"
+Only include events from calendars of these types.
+Comma\-separated list of types:
+.BR local ", " calDAV ", " exchange ", " subscription ", " birthday ", " icloud .
+The
+.B icloud
+type is a virtual alias that matches calDAV calendars with an iCloud source.
+Type matching is case\-insensitive.
+.TP
+.BI \-\-exclude\-cal\-types " types"
+Exclude events from calendars of these types.
+Same values as
+.BR \-\-include\-cal\-types .
+.TP
 .B \-\-exclude\-all\-day
 Exclude all\-day events from the output.
 .TP
@@ -206,6 +220,18 @@ Comma\-separated list of calendar titles.
 Exclude events from these calendars.
 Comma\-separated list of calendar titles.
 .TP
+.BI \-\-include\-cal\-types " types"
+Only include events from calendars of these types.
+See
+.B EVENTS OPTIONS
+for valid values.
+.TP
+.BI \-\-exclude\-cal\-types " types"
+Exclude events from calendars of these types.
+See
+.B EVENTS OPTIONS
+for valid values.
+.TP
 .B \-\-include\-all\-day
 Include all\-day events in conflict detection (excluded by default).
 .SH FREE OPTIONS
@@ -234,6 +260,18 @@ Comma\-separated list of calendar titles.
 .BI \-\-exclude\-calendars " calendars"
 Exclude events from these calendars.
 Comma\-separated list of calendar titles.
+.TP
+.BI \-\-include\-cal\-types " types"
+Only include events from calendars of these types.
+See
+.B EVENTS OPTIONS
+for valid values.
+.TP
+.BI \-\-exclude\-cal\-types " types"
+Exclude events from calendars of these types.
+See
+.B EVENTS OPTIONS
+for valid values.
 .TP
 .B \-\-include\-all\-day
 Include all\-day events as busy time (excluded by default).
@@ -720,6 +758,8 @@ format = "text"
 exclude\-all\-day = false
 include\-calendars = ["Work", "Personal"]
 exclude\-calendars = ["US Holidays"]
+include\-cal\-types = ["calDAV"]
+exclude\-cal\-types = ["subscription"]
 group\-by = "date"
 show\-empty\-dates = true
 
@@ -790,6 +830,30 @@ Show tomorrow's events from the Work calendar, excluding all\-day events:
 .nf
 $ ical\-guy events \-\-from tomorrow \-\-to tomorrow \\
     \-\-include\-calendars Work \-\-exclude\-all\-day
+.fi
+.RE
+.PP
+Show only calDAV calendar events:
+.PP
+.RS
+.nf
+$ ical\-guy events \-\-include\-cal\-types calDAV
+.fi
+.RE
+.PP
+Exclude birthday and subscription calendars:
+.PP
+.RS
+.nf
+$ ical\-guy events \-\-exclude\-cal\-types birthday,subscription
+.fi
+.RE
+.PP
+Show only iCloud\-sourced calendar events:
+.PP
+.RS
+.nf
+$ ical\-guy events \-\-include\-cal\-types icloud
 .fi
 .RE
 .PP

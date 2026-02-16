@@ -5,6 +5,8 @@ public struct EventServiceOptions: Sendable {
   public let to: Date
   public let includeCalendars: [String]?
   public let excludeCalendars: [String]?
+  public let includeCalendarTypes: [String]?
+  public let excludeCalendarTypes: [String]?
   public let excludeAllDay: Bool
   public let limit: Int?
 
@@ -13,6 +15,8 @@ public struct EventServiceOptions: Sendable {
     to: Date,
     includeCalendars: [String]? = nil,
     excludeCalendars: [String]? = nil,
+    includeCalendarTypes: [String]? = nil,
+    excludeCalendarTypes: [String]? = nil,
     excludeAllDay: Bool = false,
     limit: Int? = nil
   ) {
@@ -20,6 +24,8 @@ public struct EventServiceOptions: Sendable {
     self.to = to
     self.includeCalendars = includeCalendars
     self.excludeCalendars = excludeCalendars
+    self.includeCalendarTypes = includeCalendarTypes
+    self.excludeCalendarTypes = excludeCalendarTypes
     self.excludeAllDay = excludeAllDay
     self.limit = limit
   }
@@ -51,6 +57,18 @@ public struct EventService: Sendable {
     if let exclude = options.excludeCalendars, !exclude.isEmpty {
       let excludeSet = Set(exclude.map { $0.lowercased() })
       rawEvents = rawEvents.filter { !excludeSet.contains($0.calendarTitle.lowercased()) }
+    }
+
+    // Filter by included calendar types
+    if let includeTypes = options.includeCalendarTypes, !includeTypes.isEmpty {
+      let typeSet = Set(includeTypes.map { $0.lowercased() })
+      rawEvents = rawEvents.filter { matchesCalendarType($0, types: typeSet) }
+    }
+
+    // Filter by excluded calendar types
+    if let excludeTypes = options.excludeCalendarTypes, !excludeTypes.isEmpty {
+      let typeSet = Set(excludeTypes.map { $0.lowercased() })
+      rawEvents = rawEvents.filter { !matchesCalendarType($0, types: typeSet) }
     }
 
     // Filter all-day events
@@ -119,6 +137,20 @@ public struct EventService: Sendable {
         color: raw.color
       )
     }
+  }
+
+  // MARK: - Calendar Type Matching
+
+  private func matchesCalendarType(_ event: RawEvent, types: Set<String>) -> Bool {
+    let eventType = event.calendarType.lowercased()
+    if types.contains(eventType) { return true }
+    // "icloud" is a virtual alias for calDAV calendars with iCloud source
+    if types.contains("icloud")
+      && eventType == "caldav"
+      && event.calendarSource.lowercased().contains("icloud") {
+      return true
+    }
+    return false
   }
 
   // MARK: - Conversion

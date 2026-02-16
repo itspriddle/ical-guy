@@ -31,6 +31,19 @@ struct FreeCommand: AsyncParsableCommand {
   )
   var excludeCalendars: String?
 
+  @Option(
+    name: .long,
+    help:
+      "Only include these calendar types (local, calDAV, exchange, subscription, birthday, icloud)."
+  )
+  var includeCalTypes: String?
+
+  @Option(
+    name: .long,
+    help: "Exclude these calendar types (local, calDAV, exchange, subscription, birthday, icloud)."
+  )
+  var excludeCalTypes: String?
+
   @Flag(name: .long, help: "Include all-day events as busy time.")
   var includeAllDay = false
 
@@ -79,6 +92,8 @@ struct FreeCommand: AsyncParsableCommand {
       to: toDate,
       includeCalendars: parseCSV(includeCalendars),
       excludeCalendars: parseCSV(excludeCalendars),
+      includeCalendarTypes: parseCSV(includeCalTypes),
+      excludeCalendarTypes: parseCSV(excludeCalTypes),
       includeAllDay: includeAllDay,
       minDuration: resolvedMinDuration,
       workingHours: workingHours
