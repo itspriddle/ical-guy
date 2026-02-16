@@ -6,6 +6,8 @@ public struct UserConfig: Sendable, Equatable {
   public let excludeAllDay: Bool?
   public let includeCalendars: [String]?
   public let excludeCalendars: [String]?
+  public let includeCalendarTypes: [String]?
+  public let excludeCalendarTypes: [String]?
   public let showCalendar: Bool?
   public let showLocation: Bool?
   public let showAttendees: Bool?
@@ -22,6 +24,8 @@ public struct UserConfig: Sendable, Equatable {
     excludeAllDay: Bool? = nil,
     includeCalendars: [String]? = nil,
     excludeCalendars: [String]? = nil,
+    includeCalendarTypes: [String]? = nil,
+    excludeCalendarTypes: [String]? = nil,
     showCalendar: Bool? = nil,
     showLocation: Bool? = nil,
     showAttendees: Bool? = nil,
@@ -37,6 +41,8 @@ public struct UserConfig: Sendable, Equatable {
     self.excludeAllDay = excludeAllDay
     self.includeCalendars = includeCalendars
     self.excludeCalendars = excludeCalendars
+    self.includeCalendarTypes = includeCalendarTypes
+    self.excludeCalendarTypes = excludeCalendarTypes
     self.showCalendar = showCalendar
     self.showLocation = showLocation
     self.showAttendees = showAttendees
@@ -103,6 +109,8 @@ public struct ConfigLoader: Sendable {
     let excludeAllDay = defaults?["exclude-all-day"] as? Bool
     let includeCalendars = tomlStringArray(defaults?["include-calendars"])
     let excludeCalendars = tomlStringArray(defaults?["exclude-calendars"])
+    let includeCalendarTypes = tomlStringArray(defaults?["include-cal-types"])
+    let excludeCalendarTypes = tomlStringArray(defaults?["exclude-cal-types"])
     let groupBy = defaults?["group-by"] as? String
     let showEmptyDates = defaults?["show-empty-dates"] as? Bool
 
@@ -114,6 +122,8 @@ public struct ConfigLoader: Sendable {
       excludeAllDay: excludeAllDay,
       includeCalendars: includeCalendars,
       excludeCalendars: excludeCalendars,
+      includeCalendarTypes: includeCalendarTypes,
+      excludeCalendarTypes: excludeCalendarTypes,
       showCalendar: text?["show-calendar"] as? Bool,
       showLocation: text?["show-location"] as? Bool,
       showAttendees: text?["show-attendees"] as? Bool,

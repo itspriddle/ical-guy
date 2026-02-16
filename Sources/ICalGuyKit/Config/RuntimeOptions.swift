@@ -7,6 +7,8 @@ public struct CLIOptions: Sendable {
   public let excludeAllDay: Bool
   public let includeCalendars: [String]?
   public let excludeCalendars: [String]?
+  public let includeCalendarTypes: [String]?
+  public let excludeCalendarTypes: [String]?
   public let limit: Int?
   public let groupBy: String?
   public let showEmptyDates: Bool
@@ -17,6 +19,8 @@ public struct CLIOptions: Sendable {
     excludeAllDay: Bool = false,
     includeCalendars: [String]? = nil,
     excludeCalendars: [String]? = nil,
+    includeCalendarTypes: [String]? = nil,
+    excludeCalendarTypes: [String]? = nil,
     limit: Int? = nil,
     groupBy: String? = nil,
     showEmptyDates: Bool = false
@@ -26,6 +30,8 @@ public struct CLIOptions: Sendable {
     self.excludeAllDay = excludeAllDay
     self.includeCalendars = includeCalendars
     self.excludeCalendars = excludeCalendars
+    self.includeCalendarTypes = includeCalendarTypes
+    self.excludeCalendarTypes = excludeCalendarTypes
     self.limit = limit
     self.groupBy = groupBy
     self.showEmptyDates = showEmptyDates
@@ -39,6 +45,8 @@ public struct RuntimeOptions: Sendable {
   public let excludeAllDay: Bool
   public let includeCalendars: [String]?
   public let excludeCalendars: [String]?
+  public let includeCalendarTypes: [String]?
+  public let excludeCalendarTypes: [String]?
   public let limit: Int?
   public let textOptions: TextFormatterOptions
   public let groupBy: GroupingMode?
@@ -59,6 +67,8 @@ public struct RuntimeOptions: Sendable {
     let excludeAllDay = cli.excludeAllDay || (config?.excludeAllDay ?? false)
     let includeCalendars = cli.includeCalendars ?? config?.includeCalendars
     let excludeCalendars = cli.excludeCalendars ?? config?.excludeCalendars
+    let includeCalendarTypes = cli.includeCalendarTypes ?? config?.includeCalendarTypes
+    let excludeCalendarTypes = cli.excludeCalendarTypes ?? config?.excludeCalendarTypes
 
     let groupBy: GroupingMode?
     if let g = cli.groupBy {
@@ -85,6 +95,8 @@ public struct RuntimeOptions: Sendable {
       excludeAllDay: excludeAllDay,
       includeCalendars: includeCalendars,
       excludeCalendars: excludeCalendars,
+      includeCalendarTypes: includeCalendarTypes,
+      excludeCalendarTypes: excludeCalendarTypes,
       limit: cli.limit,
       textOptions: textOptions,
       groupBy: groupBy,
@@ -98,6 +110,8 @@ public struct RuntimeOptions: Sendable {
       to: to,
       includeCalendars: includeCalendars,
       excludeCalendars: excludeCalendars,
+      includeCalendarTypes: includeCalendarTypes,
+      excludeCalendarTypes: excludeCalendarTypes,
       excludeAllDay: excludeAllDay,
       limit: limit
     )

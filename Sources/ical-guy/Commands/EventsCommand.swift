@@ -22,6 +22,19 @@ struct EventsCommand: AsyncParsableCommand {
   @Option(name: .long, help: "Exclude these calendars (comma-separated titles).")
   var excludeCalendars: String?
 
+  @Option(
+    name: .long,
+    help:
+      "Only include these calendar types (local, calDAV, exchange, subscription, birthday, icloud)."
+  )
+  var includeCalTypes: String?
+
+  @Option(
+    name: .long,
+    help: "Exclude these calendar types (local, calDAV, exchange, subscription, birthday, icloud)."
+  )
+  var excludeCalTypes: String?
+
   @Flag(name: .long, help: "Exclude all-day events.")
   var excludeAllDay = false
 
@@ -35,6 +48,10 @@ struct EventsCommand: AsyncParsableCommand {
       .map { $0.trimmingCharacters(in: .whitespaces) }
     let parsedExclude = excludeCalendars?.split(separator: ",")
       .map { $0.trimmingCharacters(in: .whitespaces) }
+    let parsedIncludeTypes = includeCalTypes?.split(separator: ",")
+      .map { $0.trimmingCharacters(in: .whitespaces) }
+    let parsedExcludeTypes = excludeCalTypes?.split(separator: ",")
+      .map { $0.trimmingCharacters(in: .whitespaces) }
 
     let cli = CLIOptions(
       format: globalOptions.format,
@@ -42,6 +59,8 @@ struct EventsCommand: AsyncParsableCommand {
       excludeAllDay: excludeAllDay,
       includeCalendars: parsedInclude,
       excludeCalendars: parsedExclude,
+      includeCalendarTypes: parsedIncludeTypes,
+      excludeCalendarTypes: parsedExcludeTypes,
       limit: limit,
       groupBy: globalOptions.groupBy,
       showEmptyDates: globalOptions.showEmptyDates

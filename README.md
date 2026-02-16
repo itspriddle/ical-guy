@@ -96,6 +96,8 @@ OPTIONS:
   --to <to>               End date (same formats as --from).
   --include-calendars     Only include these calendars (comma-separated titles).
   --exclude-calendars     Exclude these calendars (comma-separated titles).
+  --include-cal-types     Only include these calendar types (comma-separated).
+  --exclude-cal-types     Exclude these calendar types (comma-separated).
   --exclude-all-day       Exclude all-day events.
   --limit <limit>         Maximum number of events to output.
 ```
@@ -125,6 +127,25 @@ Reminders can also be grouped by list:
 ```sh
 ical-guy reminders list --group-by calendar
 ```
+
+### Calendar type filtering
+
+Filter events by calendar type using `--include-cal-types` / `--exclude-cal-types`. Valid types: `local`, `calDAV`, `exchange`, `subscription`, `birthday`, `icloud`.
+
+```sh
+# Only show calDAV calendar events
+ical-guy events --include-cal-types calDAV
+
+# Exclude birthday and subscription calendars
+ical-guy events --exclude-cal-types birthday,subscription
+
+# Only iCloud-sourced calendars (calDAV calendars with iCloud source)
+ical-guy events --include-cal-types icloud
+```
+
+The `icloud` type is a virtual alias that matches calDAV calendars with an iCloud source. Type matching is case-insensitive.
+
+These flags are also available on `conflicts` and `free` commands and can be set in the config file.
 
 ### Meetings
 
@@ -478,6 +499,8 @@ format = "text"                          # "text" or "json"
 exclude-all-day = false
 include-calendars = ["Work", "Personal"]
 exclude-calendars = ["US Holidays"]
+include-cal-types = ["calDAV"]           # filter by calendar type
+exclude-cal-types = ["subscription"]
 group-by = "date"                        # "none", "date", or "calendar"
 show-empty-dates = true
 
