@@ -42,7 +42,9 @@ struct EventsCommand: AsyncParsableCommand {
       excludeAllDay: excludeAllDay,
       includeCalendars: parsedInclude,
       excludeCalendars: parsedExclude,
-      limit: limit
+      limit: limit,
+      groupBy: globalOptions.groupBy,
+      showEmptyDates: globalOptions.showEmptyDates
     )
     let runtimeOpts = RuntimeOptions.resolve(config: config, cli: cli)
 
@@ -69,8 +71,12 @@ struct EventsCommand: AsyncParsableCommand {
     let service = EventService(store: store)
     let events = try service.fetchEvents(options: serviceOptions)
 
+    let isMultiDay = !Calendar.current.isDate(fromDate, inSameDayAs: toDate)
+    let dateRange = DateRange(from: fromDate, to: toDate)
+    let grouping = runtimeOpts.makeGroupingContext(dateRange: dateRange, isMultiDay: isMultiDay)
+
     let isTTY = isatty(fileno(stdout)) != 0
-    let formatter = runtimeOpts.makeFormatter(isTTY: isTTY)
+    let formatter = runtimeOpts.makeFormatter(isTTY: isTTY, grouping: grouping)
     let output = try formatter.formatEvents(events)
     print(output)
   }

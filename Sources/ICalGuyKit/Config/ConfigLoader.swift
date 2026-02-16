@@ -11,6 +11,8 @@ public struct UserConfig: Sendable, Equatable {
   public let showAttendees: Bool?
   public let showMeetingUrl: Bool?
   public let showNotes: Bool?
+  public let groupBy: String?
+  public let showEmptyDates: Bool?
   public let freeMinDuration: Int?
   public let freeWorkStart: String?
   public let freeWorkEnd: String?
@@ -25,6 +27,8 @@ public struct UserConfig: Sendable, Equatable {
     showAttendees: Bool? = nil,
     showMeetingUrl: Bool? = nil,
     showNotes: Bool? = nil,
+    groupBy: String? = nil,
+    showEmptyDates: Bool? = nil,
     freeMinDuration: Int? = nil,
     freeWorkStart: String? = nil,
     freeWorkEnd: String? = nil
@@ -38,6 +42,8 @@ public struct UserConfig: Sendable, Equatable {
     self.showAttendees = showAttendees
     self.showMeetingUrl = showMeetingUrl
     self.showNotes = showNotes
+    self.groupBy = groupBy
+    self.showEmptyDates = showEmptyDates
     self.freeMinDuration = freeMinDuration
     self.freeWorkStart = freeWorkStart
     self.freeWorkEnd = freeWorkEnd
@@ -97,6 +103,8 @@ public struct ConfigLoader: Sendable {
     let excludeAllDay = defaults?["exclude-all-day"] as? Bool
     let includeCalendars = tomlStringArray(defaults?["include-calendars"])
     let excludeCalendars = tomlStringArray(defaults?["exclude-calendars"])
+    let groupBy = defaults?["group-by"] as? String
+    let showEmptyDates = defaults?["show-empty-dates"] as? Bool
 
     let text = table["text"] as? TOMLTable
     let free = table["free"] as? TOMLTable
@@ -111,6 +119,8 @@ public struct ConfigLoader: Sendable {
       showAttendees: text?["show-attendees"] as? Bool,
       showMeetingUrl: text?["show-meeting-url"] as? Bool,
       showNotes: text?["show-notes"] as? Bool,
+      groupBy: groupBy,
+      showEmptyDates: showEmptyDates,
       freeMinDuration: free?["min-duration"] as? Int,
       freeWorkStart: free?["work-start"] as? String,
       freeWorkEnd: free?["work-end"] as? String

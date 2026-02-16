@@ -2,13 +2,30 @@ import Foundation
 
 public struct JSONFormatter: OutputFormatter, Sendable {
   private let pretty: Bool
+  private let grouping: GroupingContext
 
-  public init(pretty: Bool) {
+  public init(pretty: Bool, grouping: GroupingContext = GroupingContext()) {
     self.pretty = pretty
+    self.grouping = grouping
   }
 
   public func formatEvents(_ events: [CalendarEvent]) throws -> String {
-    try encode(events)
+    switch grouping.mode {
+    case .none:
+      return try encode(events)
+    case .date:
+      let grouper = EventGrouper()
+      let groups = grouper.groupByDate(
+        events,
+        from: grouping.dateRange?.from,
+        to: grouping.dateRange?.to,
+        showEmptyDates: grouping.showEmptyDates
+      )
+      return try encode(groups)
+    case .calendar:
+      let grouper = EventGrouper()
+      return try encode(grouper.groupByCalendar(events))
+    }
   }
 
   public func formatCalendars(_ calendars: [CalendarInfo]) throws -> String {
@@ -16,7 +33,13 @@ public struct JSONFormatter: OutputFormatter, Sendable {
   }
 
   public func formatReminders(_ reminders: [Reminder]) throws -> String {
-    try encode(reminders)
+    switch grouping.mode {
+    case .calendar:
+      let grouper = EventGrouper()
+      return try encode(grouper.groupRemindersByList(reminders))
+    default:
+      return try encode(reminders)
+    }
   }
 
   public func formatReminderLists(_ lists: [ReminderListInfo]) throws -> String {
