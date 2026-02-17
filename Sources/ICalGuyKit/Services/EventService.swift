@@ -147,7 +147,8 @@ public struct EventService: Sendable {
     // "icloud" is a virtual alias for calDAV calendars with iCloud source
     if types.contains("icloud")
       && eventType == "caldav"
-      && event.calendarSource.lowercased().contains("icloud") {
+      && event.calendarSource.lowercased().contains("icloud")
+    {
       return true
     }
     return false
