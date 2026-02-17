@@ -12,7 +12,7 @@ struct ConflictsCommand: AsyncParsableCommand {
 
   @Option(
     name: .long,
-    help: "Start date (ISO 8601, 'today', 'tomorrow', 'yesterday', 'today+N')."
+    help: "Start date (ISO 8601, 'today', 'tomorrow', 'yesterday', 'today+N', or natural language)."
   )
   var from: String?
 
