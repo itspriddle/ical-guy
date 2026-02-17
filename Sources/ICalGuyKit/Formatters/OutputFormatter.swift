@@ -1,4 +1,5 @@
 import Foundation
+import Mustache
 
 public enum OutputFormat: String, Sendable, CaseIterable {
   case json
@@ -19,8 +20,14 @@ public struct FormatterFactory: Sendable {
     isTTY: Bool,
     noColor: Bool,
     textOptions: TextFormatterOptions = TextFormatterOptions(),
-    grouping: GroupingContext = GroupingContext()
-  ) -> any OutputFormatter {
+    grouping: GroupingContext = GroupingContext(),
+    dateFormats: TemplateDateFormats = TemplateDateFormats(),
+    truncation: TruncationLimits = TruncationLimits(),
+    decorations: TemplateDecorations = TemplateDecorations(),
+    eventTemplate: MustacheTemplate? = nil,
+    dateHeaderTemplate: MustacheTemplate? = nil,
+    calendarHeaderTemplate: MustacheTemplate? = nil
+  ) throws -> any OutputFormatter {
     switch format {
     case .json:
       return JSONFormatter(pretty: isTTY, grouping: grouping)
@@ -31,7 +38,16 @@ public struct FormatterFactory: Sendable {
       } else {
         colorizer = ANSIColorizer.detect(isTTY: isTTY)
       }
-      return TextFormatter(options: textOptions, colorizer: colorizer, grouping: grouping)
+      return try TemplateFormatter(
+        options: textOptions, colorizer: colorizer,
+        grouping: grouping,
+        eventTemplate: eventTemplate,
+        dateHeaderTemplate: dateHeaderTemplate,
+        calendarHeaderTemplate: calendarHeaderTemplate,
+        dateFormats: dateFormats,
+        truncation: truncation,
+        decorations: decorations
+      )
     }
   }
 
@@ -40,12 +56,23 @@ public struct FormatterFactory: Sendable {
     isTTY: Bool,
     noColor: Bool,
     textOptions: TextFormatterOptions = TextFormatterOptions(),
-    grouping: GroupingContext = GroupingContext()
-  ) -> any OutputFormatter {
+    grouping: GroupingContext = GroupingContext(),
+    dateFormats: TemplateDateFormats = TemplateDateFormats(),
+    truncation: TruncationLimits = TruncationLimits(),
+    decorations: TemplateDecorations = TemplateDecorations(),
+    eventTemplate: MustacheTemplate? = nil,
+    dateHeaderTemplate: MustacheTemplate? = nil,
+    calendarHeaderTemplate: MustacheTemplate? = nil
+  ) throws -> any OutputFormatter {
     let format: OutputFormat = isTTY ? .text : .json
-    return create(
-      format: format, isTTY: isTTY, noColor: noColor, textOptions: textOptions,
-      grouping: grouping
+    return try create(
+      format: format, isTTY: isTTY, noColor: noColor,
+      textOptions: textOptions, grouping: grouping,
+      dateFormats: dateFormats, truncation: truncation,
+      decorations: decorations,
+      eventTemplate: eventTemplate,
+      dateHeaderTemplate: dateHeaderTemplate,
+      calendarHeaderTemplate: calendarHeaderTemplate
     )
   }
 }

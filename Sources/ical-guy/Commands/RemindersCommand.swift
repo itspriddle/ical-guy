@@ -91,7 +91,7 @@ struct RemindersListCommand: AsyncParsableCommand {
 
     let isTTY = isatty(fileno(stdout)) != 0
     let grouping = makeReminderGrouping(globalOptions)
-    let formatter = makeFormatter(globalOptions, isTTY: isTTY, grouping: grouping)
+    let formatter = try makeFormatter(globalOptions, isTTY: isTTY, grouping: grouping)
     let output = try formatter.formatReminders(reminders)
     print(output)
   }
@@ -115,7 +115,7 @@ struct RemindersListsCommand: AsyncParsableCommand {
     let lists = try service.fetchReminderLists()
 
     let isTTY = isatty(fileno(stdout)) != 0
-    let formatter = makeFormatter(globalOptions, isTTY: isTTY)
+    let formatter = try makeFormatter(globalOptions, isTTY: isTTY)
     let output = try formatter.formatReminderLists(lists)
     print(output)
   }
@@ -139,12 +139,14 @@ private func makeReminderGrouping(_ options: GlobalOptions) -> GroupingContext {
 
 private func makeFormatter(
   _ options: GlobalOptions, isTTY: Bool, grouping: GroupingContext = GroupingContext()
-) -> any OutputFormatter {
+) throws -> any OutputFormatter {
   if let format = options.format {
     let outputFormat = OutputFormat(rawValue: format) ?? (isTTY ? .text : .json)
-    return FormatterFactory.create(
+    return try FormatterFactory.create(
       format: outputFormat, isTTY: isTTY, noColor: options.noColor, grouping: grouping
     )
   }
-  return FormatterFactory.autoDetect(isTTY: isTTY, noColor: options.noColor, grouping: grouping)
+  return try FormatterFactory.autoDetect(
+    isTTY: isTTY, noColor: options.noColor, grouping: grouping
+  )
 }

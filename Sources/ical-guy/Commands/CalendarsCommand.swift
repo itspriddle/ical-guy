@@ -17,7 +17,7 @@ struct CalendarsCommand: AsyncParsableCommand {
       format: globalOptions.format,
       noColor: globalOptions.noColor
     )
-    let runtimeOpts = RuntimeOptions.resolve(config: config, cli: cli)
+    let runtimeOpts = try RuntimeOptions.resolve(config: config, cli: cli)
 
     let store = LiveEventStore()
     try await store.requestAccess()
@@ -26,7 +26,7 @@ struct CalendarsCommand: AsyncParsableCommand {
     let calendars = try service.fetchCalendars()
 
     let isTTY = isatty(fileno(stdout)) != 0
-    let formatter = runtimeOpts.makeFormatter(isTTY: isTTY)
+    let formatter = try runtimeOpts.makeFormatter(isTTY: isTTY)
     let output = try formatter.formatCalendars(calendars)
     print(output)
   }

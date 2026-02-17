@@ -88,18 +88,27 @@ Sunday, Feb 15, 2026
 ```
 $ ical-guy events --help
 OPTIONS:
-  --format <format>       Output format: json or text (auto-detects based on TTY).
-  --no-color              Disable colored output.
-  --group-by <mode>       Group output: none, date, or calendar.
-  --show-empty-dates      Show dates with no events (implies --group-by date).
-  --from <from>           Start date (ISO 8601, 'today', 'tomorrow', 'yesterday', 'today+N').
-  --to <to>               End date (same formats as --from).
-  --include-calendars     Only include these calendars (comma-separated titles).
-  --exclude-calendars     Exclude these calendars (comma-separated titles).
-  --include-cal-types     Only include these calendar types (comma-separated).
-  --exclude-cal-types     Exclude these calendar types (comma-separated).
-  --exclude-all-day       Exclude all-day events.
-  --limit <limit>         Maximum number of events to output.
+  --format <format>           Output format: json or text (auto-detects based on TTY).
+  --no-color                  Disable colored output.
+  --group-by <mode>           Group output: none, date, or calendar.
+  --show-empty-dates          Show dates with no events (implies --group-by date).
+  --from <from>               Start date (ISO 8601, 'today', 'tomorrow', 'yesterday', 'today+N').
+  --to <to>                   End date (same formats as --from).
+  --include-calendars         Only include these calendars (comma-separated titles).
+  --exclude-calendars         Exclude these calendars (comma-separated titles).
+  --include-cal-types         Only include these calendar types (comma-separated).
+  --exclude-cal-types         Exclude these calendar types (comma-separated).
+  --exclude-all-day           Exclude all-day events.
+  --limit <limit>             Maximum number of events to output.
+  --template <path>           Path to a .mustache template file for event rendering.
+  --time-format <pattern>     Time format string (ICU pattern, e.g. "HH:mm" for 24-hour).
+  --date-format <pattern>     Date format string (ICU pattern, e.g. "yyyy-MM-dd").
+  --show-uid                  Show event UIDs in text output.
+  --bullet <string>           Bullet prefix for each event (e.g. "→ ").
+  --separator <string>        Separator between events (e.g. "---").
+  --indent <string>           Indentation for detail lines (default: 4 spaces).
+  --truncate-notes <n>        Truncate notes to N characters (0 = no limit).
+  --truncate-location <n>     Truncate location to N characters (0 = no limit).
 ```
 
 ### Grouping
@@ -510,12 +519,85 @@ show-location = true
 show-attendees = true
 show-meeting-url = true
 show-notes = false
+show-uid = false
 
 [free]
 min-duration = 30                        # Minimum free slot in minutes
 work-start = "09:00"                     # Working hours start (HH:MM)
 work-end = "17:00"                       # Working hours end (HH:MM)
+
+[templates]
+time-format = "HH:mm"                   # ICU time format (default: "h:mm a")
+date-format = "yyyy-MM-dd"              # ICU date format (default: "EEEE, MMM d, yyyy")
+event = "{{startTime}} - {{title}}"     # Inline Mustache template for events
+event-file = "my-template.mustache"     # External template file (overrides inline)
+date-header = "{{#bold}}=== {{formattedDate}} ==={{/bold}}"
+calendar-header = "{{#calendarColor}}{{title}}{{/calendarColor}}"
+bullet = "→ "                           # Bullet prefix for each event
+indent = "  "                           # Indentation for detail lines
+separator = "---"                       # Separator between events
+truncate-notes = 80                     # Truncate notes to N characters
+truncate-location = 40                  # Truncate location to N characters
 ```
+
+Template files are loaded from `~/.config/ical-guy/templates/` (relative paths) or from absolute paths. CLI `--template` flag takes precedence over `event-file`, which takes precedence over `event` inline.
+
+### Templates
+
+Text output uses [Mustache](https://mustache.github.io/) templates. Customize event rendering with inline templates in `config.toml`, external `.mustache` files, or the `--template` CLI flag.
+
+Available template variables:
+
+| Variable | Description |
+|---|---|
+| `{{title}}` | Event title |
+| `{{startTime}}` / `{{endTime}}` | Formatted start/end time |
+| `{{startDate}}` / `{{endDate}}` | Formatted start/end date |
+| `{{relativeStart}}` / `{{relativeEnd}}` | Relative time (e.g. "in 30 minutes") |
+| `{{location}}` | Event location |
+| `{{notes}}` | Event notes |
+| `{{meetingUrl}}` | Detected meeting URL |
+| `{{status}}` | Event status (e.g. "confirmed") |
+| `{{availability}}` | Availability (e.g. "busy") |
+| `{{id}}` | Event UID |
+| `{{calendar.title}}` | Calendar name |
+| `{{calendar.color}}` | Calendar hex color |
+| `{{organizer.name}}` / `{{organizer.email}}` | Organizer info |
+| `{{recurrence.description}}` | Recurrence rule |
+
+Boolean sections for conditional rendering:
+
+| Section | Description |
+|---|---|
+| `{{#isAllDay}}...{{/isAllDay}}` | All-day events |
+| `{{#isRecurring}}...{{/isRecurring}}` | Recurring events |
+| `{{#hasLocation}}...{{/hasLocation}}` | Has location |
+| `{{#hasMeetingUrl}}...{{/hasMeetingUrl}}` | Has meeting URL |
+| `{{#hasAttendees}}...{{/hasAttendees}}` | Has attendees |
+| `{{#showCalendar}}...{{/showCalendar}}` | Display toggle (config-controlled) |
+
+ANSI formatting lambdas (disabled with `--no-color`):
+
+| Lambda | Description |
+|---|---|
+| `{{#bold}}text{{/bold}}` | Bold text |
+| `{{#dim}}text{{/dim}}` | Dimmed text |
+| `{{#calendarColor}}text{{/calendarColor}}` | Calendar's color |
+
+Iterate attendees with `{{#attendees}}...{{/attendees}}`, using `{{name}}`, `{{email}}`, `{{status}}`, and `{{{displayString}}}` inside the loop.
+
+Example templates:
+
+```mustache
+{{! Minimal one-line }}
+{{startTime}} {{title}}
+
+{{! Detailed with relative time }}
+{{#bold}}{{title}}{{/bold}} — {{relativeStart}}
+{{#hasLocation}}  @ {{location}}{{/hasLocation}}
+```
+
+See `man ical-guy` for the full template reference.
 
 ## Development
 

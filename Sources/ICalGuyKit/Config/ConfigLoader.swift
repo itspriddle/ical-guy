@@ -18,6 +18,20 @@ public struct UserConfig: Sendable, Equatable {
   public let freeMinDuration: Int?
   public let freeWorkStart: String?
   public let freeWorkEnd: String?
+  public let timeFormat: String?
+  public let dateFormat: String?
+  public let eventTemplate: String?
+  public let dateHeaderTemplate: String?
+  public let calendarHeaderTemplate: String?
+  public let eventTemplateFile: String?
+  public let dateHeaderTemplateFile: String?
+  public let calendarHeaderTemplateFile: String?
+  public let showUid: Bool?
+  public let truncateNotes: Int?
+  public let truncateLocation: Int?
+  public let bullet: String?
+  public let separator: String?
+  public let indent: String?
 
   public init(
     format: String? = nil,
@@ -35,7 +49,21 @@ public struct UserConfig: Sendable, Equatable {
     showEmptyDates: Bool? = nil,
     freeMinDuration: Int? = nil,
     freeWorkStart: String? = nil,
-    freeWorkEnd: String? = nil
+    freeWorkEnd: String? = nil,
+    timeFormat: String? = nil,
+    dateFormat: String? = nil,
+    eventTemplate: String? = nil,
+    dateHeaderTemplate: String? = nil,
+    calendarHeaderTemplate: String? = nil,
+    eventTemplateFile: String? = nil,
+    dateHeaderTemplateFile: String? = nil,
+    calendarHeaderTemplateFile: String? = nil,
+    showUid: Bool? = nil,
+    truncateNotes: Int? = nil,
+    truncateLocation: Int? = nil,
+    bullet: String? = nil,
+    separator: String? = nil,
+    indent: String? = nil
   ) {
     self.format = format
     self.excludeAllDay = excludeAllDay
@@ -53,16 +81,33 @@ public struct UserConfig: Sendable, Equatable {
     self.freeMinDuration = freeMinDuration
     self.freeWorkStart = freeWorkStart
     self.freeWorkEnd = freeWorkEnd
+    self.timeFormat = timeFormat
+    self.dateFormat = dateFormat
+    self.eventTemplate = eventTemplate
+    self.dateHeaderTemplate = dateHeaderTemplate
+    self.calendarHeaderTemplate = calendarHeaderTemplate
+    self.eventTemplateFile = eventTemplateFile
+    self.dateHeaderTemplateFile = dateHeaderTemplateFile
+    self.calendarHeaderTemplateFile = calendarHeaderTemplateFile
+    self.showUid = showUid
+    self.truncateNotes = truncateNotes
+    self.truncateLocation = truncateLocation
+    self.bullet = bullet
+    self.separator = separator
+    self.indent = indent
   }
 }
 
 public enum ConfigError: Error, LocalizedError {
   case parseError(String)
+  case templateFileNotFound(name: String, path: String)
 
   public var errorDescription: String? {
     switch self {
     case .parseError(let message):
       return "Config parse error: \(message)"
+    case .templateFileNotFound(let name, let path):
+      return "Template file not found for '\(name)': \(path)"
     }
   }
 }
@@ -116,6 +161,7 @@ public struct ConfigLoader: Sendable {
 
     let text = table["text"] as? TOMLTable
     let free = table["free"] as? TOMLTable
+    let templates = table["templates"] as? TOMLTable
 
     return UserConfig(
       format: format,
@@ -133,7 +179,21 @@ public struct ConfigLoader: Sendable {
       showEmptyDates: showEmptyDates,
       freeMinDuration: free?["min-duration"] as? Int,
       freeWorkStart: free?["work-start"] as? String,
-      freeWorkEnd: free?["work-end"] as? String
+      freeWorkEnd: free?["work-end"] as? String,
+      timeFormat: templates?["time-format"] as? String,
+      dateFormat: templates?["date-format"] as? String,
+      eventTemplate: templates?["event"] as? String,
+      dateHeaderTemplate: templates?["date-header"] as? String,
+      calendarHeaderTemplate: templates?["calendar-header"] as? String,
+      eventTemplateFile: templates?["event-file"] as? String,
+      dateHeaderTemplateFile: templates?["date-header-file"] as? String,
+      calendarHeaderTemplateFile: templates?["calendar-header-file"] as? String,
+      showUid: text?["show-uid"] as? Bool,
+      truncateNotes: templates?["truncate-notes"] as? Int,
+      truncateLocation: templates?["truncate-location"] as? Int,
+      bullet: templates?["bullet"] as? String,
+      separator: templates?["separator"] as? String,
+      indent: templates?["indent"] as? String
     )
   }
 

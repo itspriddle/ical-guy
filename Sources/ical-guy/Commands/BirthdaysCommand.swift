@@ -45,16 +45,16 @@ struct BirthdaysCommand: AsyncParsableCommand {
     let birthdays = try service.fetchBirthdays(from: fromDate, to: toDate, limit: limit)
 
     let isTTY = isatty(fileno(stdout)) != 0
-    let formatter = makeFormatter(globalOptions, isTTY: isTTY)
+    let formatter = try makeFormatter(globalOptions, isTTY: isTTY)
     let output = try formatter.formatBirthdays(birthdays)
     print(output)
   }
 }
 
-private func makeFormatter(_ options: GlobalOptions, isTTY: Bool) -> any OutputFormatter {
+private func makeFormatter(_ options: GlobalOptions, isTTY: Bool) throws -> any OutputFormatter {
   if let format = options.format {
     let outputFormat = OutputFormat(rawValue: format) ?? (isTTY ? .text : .json)
-    return FormatterFactory.create(format: outputFormat, isTTY: isTTY, noColor: options.noColor)
+    return try FormatterFactory.create(format: outputFormat, isTTY: isTTY, noColor: options.noColor)
   }
-  return FormatterFactory.autoDetect(isTTY: isTTY, noColor: options.noColor)
+  return try FormatterFactory.autoDetect(isTTY: isTTY, noColor: options.noColor)
 }

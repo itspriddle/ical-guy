@@ -13,4 +13,28 @@ struct GlobalOptions: ParsableArguments {
 
   @Flag(name: .long, help: "Show dates with no events (implies --group-by date).")
   var showEmptyDates: Bool = false
+
+  @Option(name: .long, help: "Time format string (ICU pattern, e.g. \"HH:mm\" for 24-hour).")
+  var timeFormat: String?
+
+  @Option(name: .long, help: "Date format string (ICU pattern, e.g. \"yyyy-MM-dd\").")
+  var dateFormat: String?
+
+  @Flag(name: .long, help: "Show event UIDs in text output.")
+  var showUid: Bool = false
+
+  @Option(name: .long, help: "Bullet prefix for each event (e.g. \"→ \").")
+  var bullet: String?
+
+  @Option(name: .long, help: "Separator between events (e.g. \"---\").")
+  var separator: String?
+
+  @Option(name: .long, help: "Indentation for detail lines (default: 4 spaces).")
+  var indent: String?
+
+  @Option(name: .long, help: "Truncate notes to N characters (0 = no limit).")
+  var truncateNotes: Int?
+
+  @Option(name: .long, help: "Truncate location to N characters (0 = no limit).")
+  var truncateLocation: Int?
 }

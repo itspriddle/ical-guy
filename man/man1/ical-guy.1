@@ -112,6 +112,55 @@ groups by reminder list.
 Show dates with no events when grouping by date.
 Implies
 .BR "\-\-group\-by date" .
+.TP
+.BI \-\-time\-format " pattern"
+Time format string (ICU pattern, e.g. "HH:mm" for 24\-hour).
+Overrides the
+.B [templates] time\-format
+config value.
+.TP
+.BI \-\-date\-format " pattern"
+Date format string (ICU pattern, e.g. "yyyy\-MM\-dd").
+Overrides the
+.B [templates] date\-format
+config value.
+.TP
+.B \-\-show\-uid
+Show event UIDs in text output.
+.TP
+.BI \-\-bullet " string"
+Bullet prefix for each event (e.g. "\(->") ").
+Overrides the
+.B [templates] bullet
+config value.
+.TP
+.BI \-\-separator " string"
+Separator between events (e.g. "\-\-\-").
+Overrides the
+.B [templates] separator
+config value.
+.TP
+.BI \-\-indent " string"
+Indentation for detail lines (default: 4 spaces).
+Overrides the
+.B [templates] indent
+config value.
+.TP
+.BI \-\-truncate\-notes " n"
+Truncate notes to
+.I n
+characters (0 = no limit).
+Overrides the
+.B [templates] truncate\-notes
+config value.
+.TP
+.BI \-\-truncate\-location " n"
+Truncate location to
+.I n
+characters (0 = no limit).
+Overrides the
+.B [templates] truncate\-location
+config value.
 .SH EVENTS OPTIONS
 .TP
 .BI \-\-from " date"
@@ -155,6 +204,17 @@ Exclude all\-day events from the output.
 .TP
 .BI \-\-limit " n"
 Maximum number of events to return.
+.TP
+.BI \-\-template " path"
+Path to a .mustache template file for event rendering.
+Overrides both
+.B [templates] event\-file
+and
+.B [templates] event
+from config.
+See
+.B TEMPLATES
+below.
 .SH MEETING OPTIONS
 The
 .BR "meeting now" ,
@@ -769,13 +829,279 @@ show\-location = true
 show\-attendees = true
 show\-meeting\-url = true
 show\-notes = false
+show\-uid = false
 
 [free]
 min\-duration = 30
 work\-start = "09:00"
 work\-end = "17:00"
+
+[templates]
+time\-format = "HH:mm"
+date\-format = "yyyy\-MM\-dd"
+event = "{{startTime}} \- {{title}}"
+event\-file = "my\-template.mustache"
+date\-header = "{{#bold}}=== {{formattedDate}} ==={{/bold}}"
+date\-header\-file = "date\-header.mustache"
+calendar\-header = "{{#calendarColor}}{{title}}{{/calendarColor}}"
+calendar\-header\-file = "calendar\-header.mustache"
+bullet = "\(-> "
+indent = "  "
+separator = "\-\-\-"
+truncate\-notes = 80
+truncate\-location = 40
 .fi
 .RE
+.SH TEMPLATES
+.B ical\-guy
+uses Mustache templates for text output.
+Customize event rendering with inline templates in
+.IR config.toml ,
+external
+.I .mustache
+files, or the
+.B \-\-template
+CLI flag.
+.SS Scalar Variables
+.TP
+.B {{title}}
+Event title (e.g. "Team Standup").
+.TP
+.B {{location}}
+Event location (e.g. "Conference Room A").
+.TP
+.B {{notes}}
+Event notes.
+.TP
+.B {{url}}
+Event URL.
+.TP
+.B {{meetingUrl}}
+Meeting/video conference URL.
+.TP
+.B {{status}}
+Event status (e.g. "confirmed").
+.TP
+.B {{availability}}
+Availability (e.g. "busy").
+.TP
+.B {{timeZone}}
+Event timezone (e.g. "America/New_York").
+.TP
+.B {{id}}
+Event UID.
+.SS Date/Time Variables
+.TP
+.B {{startTime}}
+Formatted start time (e.g. "9:00 AM").
+.TP
+.B {{endTime}}
+Formatted end time.
+.TP
+.B {{startDate}}
+Formatted start date (e.g. "Monday, Feb 16, 2026").
+.TP
+.B {{endDate}}
+Formatted end date.
+.TP
+.B {{relativeStart}}
+Relative time to start (e.g. "in 30 minutes").
+.TP
+.B {{relativeEnd}}
+Relative time to end.
+.PP
+All\-day events show "All day" for time variables and "all day" for
+relative variables.
+Customize formats with
+.B \-\-time\-format
+and
+.B \-\-date\-format
+(ICU patterns).
+.SS Boolean Flags
+Use with
+.BI {{#flag}} ... {{/flag}}
+sections.
+Inverted sections:
+.BI {{^flag}} ... {{/flag}} .
+.TP
+.B {{#isAllDay}}
+True for all\-day events.
+.TP
+.B {{#isRecurring}}
+True for recurring events.
+.TP
+.B {{#hasLocation}}
+True if location is set and non\-empty.
+.TP
+.B {{#hasNotes}}
+True if notes are set and non\-empty.
+.TP
+.B {{#hasUrl}}
+True if URL is set.
+.TP
+.B {{#hasMeetingUrl}}
+True if meeting URL is set.
+.TP
+.B {{#hasAttendees}}
+True if event has attendees.
+.TP
+.B {{#hasOrganizer}}
+True if organizer is set.
+.SS Nested Objects
+Use dot notation to access nested fields.
+.TP
+.B {{calendar.title}}
+Calendar name.
+.TP
+.B {{calendar.color}}
+Calendar hex color (e.g. "#FF0000").
+.TP
+.B {{calendar.type}}
+Calendar type (e.g. "calDAV").
+.TP
+.B {{calendar.source}}
+Calendar source (e.g. "iCloud").
+.TP
+.B {{organizer.name}}
+Organizer name.
+.TP
+.B {{organizer.email}}
+Organizer email.
+.TP
+.B {{recurrence.isRecurring}}
+Same as {{isRecurring}}.
+.TP
+.B {{recurrence.description}}
+Recurrence rule (e.g. "Every day").
+.SS Attendees Array
+Iterate with
+.BI {{#attendees}} ... {{/attendees}} .
+.TP
+.B {{name}}
+Attendee name.
+.TP
+.B {{email}}
+Attendee email.
+.TP
+.B {{status}}
+RSVP status (e.g. "accepted").
+.TP
+.B {{role}}
+Role (e.g. "required").
+.TP
+.B {{isCurrentUser}}
+True if this is the current user.
+.TP
+.B {{displayString}}
+Pre\-formatted display string (e.g. "John Doe <john@example.com> (accepted)").
+Use triple\-stache
+.B {{{displayString}}}
+to avoid HTML escaping.
+.SS Display Toggles
+Controlled by config or CLI flags.
+.TP
+.B {{#showCalendar}}
+Show calendar name (default: true).
+.TP
+.B {{#showLocation}}
+Show location (default: true).
+.TP
+.B {{#showAttendees}}
+Show attendees (default: true).
+.TP
+.B {{#showMeetingUrl}}
+Show meeting URL (default: true).
+.TP
+.B {{#showNotes}}
+Show notes (default: false).
+.TP
+.B {{#showUid}}
+Show event UID (default: false, enable with
+.BR \-\-show\-uid ).
+.SS Decoration Variables
+Configurable via
+.B [templates]
+config section or CLI flags.
+Use triple\-stache
+.BI {{{ var }}}
+for decorations to avoid HTML escaping.
+.TP
+.B {{{bullet}}}
+Bullet character (default: empty).
+.TP
+.B {{{indent}}}
+Indentation string (default: 4 spaces).
+.TP
+.B {{{separator}}}
+Separator between events (default: empty).
+.SS Lambdas
+ANSI formatting lambdas, disabled with
+.BR \-\-no\-color .
+.TP
+.BI {{#bold}} text {{/bold}}
+Make text bold.
+.TP
+.BI {{#dim}} text {{/dim}}
+Make text dimmed/gray.
+.TP
+.BI {{#calendarColor}} text {{/calendarColor}}
+Apply the calendar's color to text.
+.SS Group Header Templates
+.PP
+Date headers:
+.BR {{formattedDate}} ", " {{#bold}} .
+.PP
+Calendar headers:
+.BR {{title}} ", " {{color}} ", " {{type}} ", " {{source}} ", "
+.BR {{#bold}} ", " {{#calendarColor}} .
+.SS Example Templates
+Minimal (one\-line summary):
+.PP
+.RS
+.nf
+{{startTime}} {{title}}
+.fi
+.RE
+.PP
+Detailed:
+.PP
+.RS
+.nf
+{{#bold}}{{title}}{{/bold}} ({{startTime}} \- {{endTime}})
+{{#hasLocation}}  Location: {{location}}{{/hasLocation}}
+{{#hasAttendees}}  Attendees: {{#attendees}}{{name}} {{/attendees}}{{/hasAttendees}}
+{{#isRecurring}}  Recurs: {{recurrence.description}}{{/isRecurring}}
+.fi
+.RE
+.PP
+With relative time:
+.PP
+.RS
+.nf
+{{#bold}}{{title}}{{/bold}} \(em {{relativeStart}}
+{{#hasLocation}}  @ {{location}}{{/hasLocation}}
+.fi
+.RE
+.SS Template Precedence
+.PP
+For event templates: CLI
+.B \-\-template
+flag > config
+.B event\-file
+> config
+.B event
+inline > built\-in default.
+.PP
+For header templates: config
+.B date\-header\-file
+>
+.B date\-header
+inline > built\-in default (same for
+.BR calendar\-header ).
+.PP
+Template files are loaded from
+.I ~/.config/ical\-guy/templates/
+(relative paths) or from absolute paths.
 .SH MEETING URL EXTRACTION
 The
 .B meetingUrl
