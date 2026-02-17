@@ -7,7 +7,8 @@ public enum DateParseError: Error, LocalizedError {
     switch self {
     case .invalidFormat(let input):
       return "Invalid date format: '\(input)'. "
-        + "Use ISO 8601 (2024-03-15), 'today', 'tomorrow', 'yesterday', or 'today+N'/'today-N'."
+        + "Use ISO 8601 (2024-03-15), 'today', 'tomorrow', 'yesterday', 'today+N'/'today-N', "
+        + "or natural language (e.g. 'june 10 at 6pm', 'next friday')."
     }
   }
 }
@@ -58,6 +59,11 @@ public struct DateParser: Sendable {
 
     // ISO 8601 with time: 2024-03-15T09:00:00
     if let date = parseISO8601DateTime(trimmed) {
+      return date
+    }
+
+    // Natural language: "june 10 at 6pm", "next friday", etc.
+    if let date = parseNaturalLanguage(input.trimmingCharacters(in: .whitespaces)) {
       return date
     }
 
@@ -112,5 +118,19 @@ public struct DateParser: Sendable {
     formatter.formatOptions = [.withFullDate, .withFullTime]
     formatter.timeZone = calendar.timeZone
     return formatter.date(from: input)
+  }
+
+  private func parseNaturalLanguage(_ input: String) -> Date? {
+    guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.date.rawValue)
+    else {
+      return nil
+    }
+    let range = NSRange(input.startIndex..., in: input)
+    guard let match = detector.firstMatch(in: input, options: [], range: range),
+      match.range == range
+    else {
+      return nil
+    }
+    return match.date
   }
 }

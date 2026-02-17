@@ -92,7 +92,7 @@ OPTIONS:
   --no-color                  Disable colored output.
   --group-by <mode>           Group output: none, date, or calendar.
   --show-empty-dates          Show dates with no events (implies --group-by date).
-  --from <from>               Start date (ISO 8601, 'today', 'tomorrow', 'yesterday', 'today+N').
+  --from <from>               Start date (ISO 8601, 'today', 'tomorrow', 'yesterday', 'today+N', or natural language).
   --to <to>                   End date (same formats as --from).
   --include-calendars         Only include these calendars (comma-separated titles).
   --exclude-calendars         Exclude these calendars (comma-separated titles).
@@ -413,6 +413,7 @@ The `meetingUrl` field is automatically populated when a Google Meet, Zoom, Micr
 | `today-N` | `--from today-3` | N days before today |
 | `now` | `--from now` | Current date/time |
 | ISO 8601 | `--from 2024-03-15` | Specific date |
+| Natural language | `--from "june 10 at 6pm"` | English date phrases (e.g. "next friday", "march 1, 2026") |
 
 ### JSON output
 

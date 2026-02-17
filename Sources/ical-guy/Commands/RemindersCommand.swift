@@ -30,7 +30,7 @@ struct RemindersListCommand: AsyncParsableCommand {
   @Flag(name: .long, help: "Show all reminders (completed and incomplete).")
   var all: Bool = false
 
-  @Option(name: .long, help: "Start date for due date filter (ISO 8601, 'today', etc.).")
+  @Option(name: .long, help: "Start date for due date filter (ISO 8601, 'today', 'today+N', or natural language).")
   var from: String?
 
   @Option(name: .long, help: "End date for due date filter (same formats as --from).")

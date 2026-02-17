@@ -12,7 +12,7 @@ struct FreeCommand: AsyncParsableCommand {
 
   @Option(
     name: .long,
-    help: "Start date (ISO 8601, 'today', 'tomorrow', 'now', 'today+N')."
+    help: "Start date (ISO 8601, 'today', 'tomorrow', 'now', 'today+N', or natural language)."
   )
   var from: String?
 

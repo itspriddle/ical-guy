@@ -10,7 +10,7 @@ struct EventsCommand: AsyncParsableCommand {
 
   @OptionGroup var globalOptions: GlobalOptions
 
-  @Option(name: .long, help: "Start date (ISO 8601, 'today', 'tomorrow', 'yesterday', 'today+N').")
+  @Option(name: .long, help: "Start date (ISO 8601, 'today', 'tomorrow', 'yesterday', 'today+N', or natural language).")
   var from: String?
 
   @Option(name: .long, help: "End date (same formats as --from).")
