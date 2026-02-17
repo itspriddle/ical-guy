@@ -335,6 +335,9 @@ extension TemplateFormatter {
     parts.append("{{#attendees}}")
     parts.append("{{{indent}}}  - {{{displayString}}}")
     parts.append("{{/attendees}}")
+    parts.append("{{#hasAttendeesOverflow}}")
+    parts.append("{{{indent}}}  {{#dim}}... and {{attendeesOverflowCount}} more{{/dim}}")
+    parts.append("{{/hasAttendeesOverflow}}")
     parts.append("{{/hasAttendees}}")
     parts.append("{{/showAttendees}}")
     // Recurrence detail line

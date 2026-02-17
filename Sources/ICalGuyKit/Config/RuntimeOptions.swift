@@ -28,6 +28,7 @@ public struct CLIOptions: Sendable {
   public let indent: String?
   public let truncateNotes: Int?
   public let truncateLocation: Int?
+  public let maxAttendees: Int?
 
   public init(
     format: String? = nil,
@@ -48,7 +49,8 @@ public struct CLIOptions: Sendable {
     separator: String? = nil,
     indent: String? = nil,
     truncateNotes: Int? = nil,
-    truncateLocation: Int? = nil
+    truncateLocation: Int? = nil,
+    maxAttendees: Int? = nil
   ) {
     self.format = format
     self.noColor = noColor
@@ -69,6 +71,7 @@ public struct CLIOptions: Sendable {
     self.indent = indent
     self.truncateNotes = truncateNotes
     self.truncateLocation = truncateLocation
+    self.maxAttendees = maxAttendees
   }
 }
 
@@ -127,7 +130,8 @@ public struct RuntimeOptions: Sendable {
       ),
       truncation: TruncationLimits(
         notes: cli.truncateNotes ?? config?.truncateNotes,
-        location: cli.truncateLocation ?? config?.truncateLocation
+        location: cli.truncateLocation ?? config?.truncateLocation,
+        attendees: cli.maxAttendees ?? config?.maxAttendees
       ),
       decorations: TemplateDecorations(
         bullet: cli.bullet ?? config?.bullet ?? "",

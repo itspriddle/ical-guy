@@ -68,6 +68,7 @@ public struct UserConfig: Sendable, Equatable {
   public let showUid: Bool?
   public let truncateNotes: Int?
   public let truncateLocation: Int?
+  public let maxAttendees: Int?
   public let bullet: String?
   public let separator: String?
   public let indent: String?
@@ -101,6 +102,7 @@ public struct UserConfig: Sendable, Equatable {
     showUid: Bool? = nil,
     truncateNotes: Int? = nil,
     truncateLocation: Int? = nil,
+    maxAttendees: Int? = nil,
     bullet: String? = nil,
     separator: String? = nil,
     indent: String? = nil,
@@ -133,6 +135,7 @@ public struct UserConfig: Sendable, Equatable {
     self.showUid = showUid
     self.truncateNotes = truncateNotes
     self.truncateLocation = truncateLocation
+    self.maxAttendees = maxAttendees
     self.bullet = bullet
     self.separator = separator
     self.indent = indent
@@ -247,6 +250,7 @@ public struct ConfigLoader: Sendable {
       showUid: text?["show-uid"] as? Bool,
       truncateNotes: templates?["truncate-notes"] as? Int,
       truncateLocation: templates?["truncate-location"] as? Int,
+      maxAttendees: templates?["max-attendees"] as? Int,
       bullet: templates?["bullet"] as? String,
       separator: templates?["separator"] as? String,
       indent: templates?["indent"] as? String,

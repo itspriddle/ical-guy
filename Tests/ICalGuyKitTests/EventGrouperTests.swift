@@ -155,7 +155,7 @@ final class EventGrouperTests: XCTestCase {
       makeEvent(
         id: "1", title: "Conference",
         startDate: date(2024, 3, 15), endDate: date(2024, 3, 18),
-        isAllDay: true),
+        isAllDay: true)
     ]
 
     let groups = grouper.groupByDate(events)
@@ -178,7 +178,7 @@ final class EventGrouperTests: XCTestCase {
       makeEvent(
         id: "1", title: "Holiday",
         startDate: date(2024, 3, 15), endDate: date(2024, 3, 16),
-        isAllDay: true),
+        isAllDay: true)
     ]
 
     let groups = grouper.groupByDate(events)
@@ -193,7 +193,7 @@ final class EventGrouperTests: XCTestCase {
     let events = [
       makeEvent(
         id: "1", title: "Late Night",
-        startDate: date(2024, 3, 15, 22), endDate: date(2024, 3, 16, 2)),
+        startDate: date(2024, 3, 15, 22), endDate: date(2024, 3, 16, 2))
     ]
 
     let groups = grouper.groupByDate(events)
@@ -210,7 +210,7 @@ final class EventGrouperTests: XCTestCase {
     let events = [
       makeEvent(
         id: "1", title: "Evening Event",
-        startDate: date(2024, 3, 15, 22), endDate: date(2024, 3, 16)),
+        startDate: date(2024, 3, 15, 22), endDate: date(2024, 3, 16))
     ]
 
     let groups = grouper.groupByDate(events)
@@ -226,7 +226,7 @@ final class EventGrouperTests: XCTestCase {
       makeEvent(
         id: "1", title: "Conference",
         startDate: date(2024, 3, 15), endDate: date(2024, 3, 18),
-        isAllDay: true),
+        isAllDay: true)
     ]
 
     let groups = grouper.groupByDate(
