@@ -15,6 +15,8 @@ release: ## Build release binary
 universal: ## Build universal (arm64 + x86_64) release binary
 	swift build -c release --arch arm64 --arch x86_64
 
+check: lint-check format-check ## Run lint/format checks
+
 test: ## Run tests
 	swift test
 
