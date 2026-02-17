@@ -103,6 +103,9 @@ struct MeetingOpenCommand: AsyncParsableCommand {
   @Flag(name: .long, help: "Open the next upcoming meeting instead of the current one.")
   var next: Bool = false
 
+  @Option(name: .long, help: "Open meeting URL in this browser (e.g. \"Google Chrome\").")
+  var browser: String?
+
   @Option(name: .long, help: "Only include these calendars (comma-separated titles).")
   var includeCalendars: String?
 
@@ -137,7 +140,25 @@ struct MeetingOpenCommand: AsyncParsableCommand {
       throw CleanExit.message("Invalid meeting URL: \(meetingUrl)")
     }
 
-    NSWorkspace.shared.open(url)
+    let config = try? ConfigLoader.load()
+    let resolver = BrowserResolver()
+    let browserName = resolver.resolveBrowserName(
+      cliBrowser: browser,
+      vendor: context.event.meetingVendor,
+      config: config?.browsers
+    )
+
+    if let browserName {
+      switch resolver.resolveApplicationURL(browserName) {
+      case .success(let appURL):
+        let configuration = NSWorkspace.OpenConfiguration()
+        try await NSWorkspace.shared.open([url], withApplicationAt: appURL, configuration: configuration)
+      case .failure(let error):
+        throw CleanExit.message(error.localizedDescription)
+      }
+    } else {
+      NSWorkspace.shared.open(url)
+    }
   }
 }
 

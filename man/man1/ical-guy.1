@@ -43,7 +43,10 @@ Show current meeting details with time remaining.
 Show next upcoming meeting with time until start.
 .TP
 .B meeting open
-Open current meeting URL in the default browser.
+Open current meeting URL in a browser.
+Supports per\-vendor browser selection via config or the
+.B \-\-browser
+flag.
 Use
 .B \-\-next
 to open the next upcoming meeting instead.
@@ -238,6 +241,18 @@ subcommand also supports:
 .TP
 .B \-\-next
 Open the next upcoming meeting instead of the current one.
+.TP
+.BI \-\-browser " name"
+Open the meeting URL in the specified browser application instead of the
+system default.
+Accepts an application name (e.g. "Google Chrome") or an absolute path
+(e.g. "/Applications/Firefox.app").
+This flag takes precedence over any
+.B [browsers]
+config settings.
+See
+.B CONFIGURATION
+below.
 .SH BIRTHDAYS OPTIONS
 .TP
 .BI \-\-from " date"
@@ -569,6 +584,10 @@ Event URL, or null.
 .B meetingUrl
 Detected meeting URL (Zoom, Google Meet, Teams, WebEx), or null.
 .TP
+.B meetingVendor
+Detected meeting vendor ("meet", "zoom", "teams", "webex"), or null.
+Used for per\-vendor browser selection.
+.TP
 .B calendar
 Object with
 .BR id ,
@@ -846,6 +865,13 @@ min\-duration = 30
 work\-start = "09:00"
 work\-end = "17:00"
 
+[browsers]
+default = "Safari"
+meet = "Google Chrome"
+zoom = "Safari"
+teams = "Microsoft Edge"
+webex = "Google Chrome"
+
 [templates]
 time\-format = "HH:mm"
 date\-format = "yyyy\-MM\-dd"
@@ -862,6 +888,41 @@ truncate\-notes = 80
 truncate\-location = 40
 .fi
 .RE
+.SS Browser Selection
+The
+.B [browsers]
+section configures which browser application to use when opening meeting
+URLs with
+.BR "meeting open" .
+.PP
+Priority chain:
+.B \-\-browser
+CLI flag > vendor\-specific config key > config
+.B default
+key > system default browser.
+.TP
+.B default
+Default browser for all meeting vendors.
+.TP
+.B meet
+Browser for Google Meet URLs.
+.TP
+.B zoom
+Browser for Zoom URLs.
+.TP
+.B teams
+Browser for Microsoft Teams URLs.
+.TP
+.B webex
+Browser for WebEx URLs.
+.PP
+Values can be application names (e.g. "Google Chrome", "Safari") or absolute
+paths (e.g. "/Applications/Firefox.app").
+Applications are searched in
+.IR /Applications ,
+.IR ~/Applications ,
+and
+.IR /System/Applications .
 .SH TEMPLATES
 .B ical\-guy
 uses Mustache templates for text output.
@@ -1230,6 +1291,14 @@ Open current meeting in browser:
 .RS
 .nf
 $ ical\-guy meeting open
+.fi
+.RE
+.PP
+Open current meeting in Google Chrome:
+.PP
+.RS
+.nf
+$ ical\-guy meeting open \-\-browser "Google Chrome"
 .fi
 .RE
 .PP

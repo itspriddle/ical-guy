@@ -20,6 +20,7 @@ public struct CalendarEvent: Codable, Equatable, Sendable {
   public let notes: String?
   public let url: String?
   public let meetingUrl: String?
+  public let meetingVendor: MeetingVendor?
   public let calendar: CalendarInfo
   public let attendees: [Attendee]
   public let organizer: Organizer?
@@ -40,6 +41,7 @@ public struct CalendarEvent: Codable, Equatable, Sendable {
     notes: String?,
     url: String?,
     meetingUrl: String? = nil,
+    meetingVendor: MeetingVendor? = nil,
     calendar: CalendarInfo,
     attendees: [Attendee] = [],
     organizer: Organizer? = nil,
@@ -59,6 +61,7 @@ public struct CalendarEvent: Codable, Equatable, Sendable {
     self.notes = notes
     self.url = url
     self.meetingUrl = meetingUrl
+    self.meetingVendor = meetingVendor
     self.calendar = calendar
     self.attendees = attendees
     self.organizer = organizer

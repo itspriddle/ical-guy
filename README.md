@@ -173,11 +173,29 @@ ical-guy meeting open
 # Open next meeting URL in browser
 ical-guy meeting open --next
 
+# Open in a specific browser
+ical-guy meeting open --browser "Google Chrome"
+
 # List today's meetings (events with video call URLs)
 ical-guy meeting list
 ```
 
 Meeting subcommands support `--include-calendars` and `--exclude-calendars` for filtering, and `--format`/`--no-color` for output control (except `meeting open`).
+
+#### Browser selection
+
+`meeting open` supports per-vendor browser overrides via the config file and a `--browser` CLI flag. Priority: `--browser` flag > vendor-specific config > `[browsers] default` config > system default.
+
+```toml
+[browsers]
+default = "Safari"
+meet = "Google Chrome"
+zoom = "Safari"
+teams = "Microsoft Edge"
+webex = "Google Chrome"
+```
+
+Vendor keys (`meet`, `zoom`, `teams`, `webex`) correspond to the detected meeting URL type. See Configuration below.
 
 ### Conflicts
 
@@ -456,6 +474,7 @@ Each event object contains:
   "notes": "Weekly sync",
   "url": null,
   "meetingUrl": "https://meet.google.com/abc-defg-hij",
+  "meetingVendor": "meet",
   "calendar": {
     "id": "A1B2C3D4-...",
     "title": "Work",
@@ -526,6 +545,13 @@ show-uid = false
 min-duration = 30                        # Minimum free slot in minutes
 work-start = "09:00"                     # Working hours start (HH:MM)
 work-end = "17:00"                       # Working hours end (HH:MM)
+
+[browsers]
+default = "Safari"                       # Default browser for meeting open
+meet = "Google Chrome"                   # Google Meet
+zoom = "Safari"                          # Zoom
+teams = "Microsoft Edge"                 # Microsoft Teams
+webex = "Google Chrome"                  # WebEx
 
 [templates]
 time-format = "HH:mm"                   # ICU time format (default: "h:mm a")
