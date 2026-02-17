@@ -1,0 +1,7 @@
+parent_config: ../.swiftlint.yml
+
+# Test classes naturally grow with coverage — these length rules
+# add friction without improving test readability.
+disabled_rules:
+  - type_body_length
+  - file_length

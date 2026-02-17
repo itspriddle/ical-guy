@@ -112,7 +112,7 @@ public struct TemplateFormatter: OutputFormatter, Sendable {
   }
 
   private func formatEventsByDate(_ events: [CalendarEvent]) -> String {
-    let grouper = EventGrouper()
+    let grouper = DateGrouper()
     let groups = grouper.groupByDate(
       events,
       from: grouping.dateRange?.from,
@@ -146,7 +146,7 @@ public struct TemplateFormatter: OutputFormatter, Sendable {
   private func formatEventsByCalendar(_ events: [CalendarEvent]) -> String {
     if events.isEmpty { return "No events." }
 
-    let grouper = EventGrouper()
+    let grouper = CalendarGrouper()
     let groups = grouper.groupByCalendar(events)
 
     var lines: [String] = []
@@ -248,7 +248,7 @@ public struct TemplateFormatter: OutputFormatter, Sendable {
   // MARK: - Reminders (delegated formatting)
 
   private func formatRemindersByList(_ reminders: [Reminder]) -> String {
-    let grouper = EventGrouper()
+    let grouper = ReminderListGrouper()
     let groups = grouper.groupRemindersByList(reminders)
 
     var lines: [String] = []

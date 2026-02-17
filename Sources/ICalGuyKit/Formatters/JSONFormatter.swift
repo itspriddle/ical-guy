@@ -14,7 +14,7 @@ public struct JSONFormatter: OutputFormatter, Sendable {
     case .none:
       return try encode(events)
     case .date:
-      let grouper = EventGrouper()
+      let grouper = DateGrouper()
       let groups = grouper.groupByDate(
         events,
         from: grouping.dateRange?.from,
@@ -23,7 +23,7 @@ public struct JSONFormatter: OutputFormatter, Sendable {
       )
       return try encode(groups)
     case .calendar:
-      let grouper = EventGrouper()
+      let grouper = CalendarGrouper()
       return try encode(grouper.groupByCalendar(events))
     }
   }
@@ -35,7 +35,7 @@ public struct JSONFormatter: OutputFormatter, Sendable {
   public func formatReminders(_ reminders: [Reminder]) throws -> String {
     switch grouping.mode {
     case .calendar:
-      let grouper = EventGrouper()
+      let grouper = ReminderListGrouper()
       return try encode(grouper.groupRemindersByList(reminders))
     default:
       return try encode(reminders)

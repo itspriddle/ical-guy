@@ -1,13 +1,11 @@
 import Foundation
 
-public struct EventGrouper: Sendable {
+public struct DateGrouper: Sendable {
   private let calendar: Calendar
 
   public init(calendar: Calendar = .current) {
     self.calendar = calendar
   }
-
-  // MARK: - Date Grouping
 
   public func groupByDate(
     _ events: [CalendarEvent],
@@ -87,37 +85,5 @@ public struct EventGrouper: Sendable {
     }
 
     return result
-  }
-
-  // MARK: - Calendar Grouping
-
-  public func groupByCalendar(_ events: [CalendarEvent]) -> [CalendarGroup] {
-    let grouped = Dictionary(grouping: events) { $0.calendar.id }
-
-    return grouped.values
-      .map { events in
-        CalendarGroup(
-          calendar: events[0].calendar,
-          events: events.sorted { a, b in
-            a.startDate < b.startDate
-          })
-      }
-      .sorted {
-        $0.calendar.title.localizedCaseInsensitiveCompare($1.calendar.title) == .orderedAscending
-      }
-  }
-
-  // MARK: - Reminder List Grouping
-
-  public func groupRemindersByList(_ reminders: [Reminder]) -> [ReminderListGroup] {
-    let grouped = Dictionary(grouping: reminders) { $0.list.id }
-
-    return grouped.values
-      .map { reminders in
-        ReminderListGroup(list: reminders[0].list, reminders: reminders)
-      }
-      .sorted {
-        $0.list.title.localizedCaseInsensitiveCompare($1.list.title) == .orderedAscending
-      }
   }
 }
