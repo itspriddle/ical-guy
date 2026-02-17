@@ -279,6 +279,79 @@ final class EventGrouperTests: XCTestCase {
     XCTAssertEqual(mar17.events[0].title, "Conference")
   }
 
+  // MARK: - Day Bucket Clipping
+
+  func testMultiDayEventClippedToRangeStart() {
+    // 3-day event starting Mar 14, but query from Mar 15
+    let events = [
+      makeEvent(
+        id: "1", title: "Conference",
+        startDate: date(2024, 3, 14), endDate: date(2024, 3, 17),
+        isAllDay: true)
+    ]
+
+    let groups = grouper.groupByDate(events, from: date(2024, 3, 15), to: date(2024, 3, 17))
+
+    // Should not have a Mar 14 bucket
+    XCTAssertFalse(groups.contains { $0.date == "2024-03-14" })
+    XCTAssertTrue(groups.contains { $0.date == "2024-03-15" })
+    XCTAssertTrue(groups.contains { $0.date == "2024-03-16" })
+  }
+
+  func testMultiDayEventClippedToRangeEnd() {
+    // Event spanning Mar 15-18, but query to Mar 16
+    let events = [
+      makeEvent(
+        id: "1", title: "Long Event",
+        startDate: date(2024, 3, 15), endDate: date(2024, 3, 19),
+        isAllDay: true)
+    ]
+
+    let groups = grouper.groupByDate(events, from: date(2024, 3, 15), to: date(2024, 3, 16))
+
+    XCTAssertEqual(groups.count, 2)
+    XCTAssertEqual(groups[0].date, "2024-03-15")
+    XCTAssertEqual(groups[1].date, "2024-03-16")
+    XCTAssertFalse(groups.contains { $0.date == "2024-03-17" })
+    XCTAssertFalse(groups.contains { $0.date == "2024-03-18" })
+  }
+
+  func testSingleDayEventBeforeRangeExcludedFromGrouping() {
+    // Event on Mar 14, grouped with from=Mar 15
+    let events = [
+      makeEvent(
+        id: "1", title: "Old Event",
+        startDate: date(2024, 3, 14, 9), endDate: date(2024, 3, 14, 10))
+    ]
+
+    let groups = grouper.groupByDate(events, from: date(2024, 3, 15))
+
+    XCTAssertTrue(groups.isEmpty)
+  }
+
+  func testGroupByDateClipsWithFromToAndShowEmptyDatesFalse() {
+    // Multi-day event that extends beyond query range, showEmptyDates=false (default)
+    let events = [
+      makeEvent(
+        id: "1", title: "Conference",
+        startDate: date(2024, 3, 14), endDate: date(2024, 3, 18),
+        isAllDay: true),
+      makeEvent(
+        id: "2", title: "Meeting",
+        startDate: date(2024, 3, 15, 10), endDate: date(2024, 3, 15, 11)),
+    ]
+
+    let groups = grouper.groupByDate(
+      events, from: date(2024, 3, 15), to: date(2024, 3, 16))
+
+    // Only Mar 15 and Mar 16 buckets, no Mar 14 or Mar 17
+    XCTAssertEqual(groups.count, 2)
+    XCTAssertEqual(groups[0].date, "2024-03-15")
+    XCTAssertEqual(groups[0].events.count, 2)  // Conference + Meeting
+    XCTAssertEqual(groups[1].date, "2024-03-16")
+    XCTAssertEqual(groups[1].events.count, 1)  // Conference only
+  }
+
   // MARK: - Calendar Grouping
 
   func testGroupByCalendar() {

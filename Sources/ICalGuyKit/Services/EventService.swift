@@ -47,6 +47,11 @@ public struct EventService: Sendable {
 
     var rawEvents = try store.events(matching: query)
 
+    // Enforce date range boundaries (EventKit may return events outside the range)
+    rawEvents = rawEvents.filter { event in
+      event.startDate < options.to && event.endDate > options.from
+    }
+
     // Filter by included calendars
     if let include = options.includeCalendars, !include.isEmpty {
       let includeSet = Set(include.map { $0.lowercased() })

@@ -78,6 +78,99 @@ final class EventServiceTests: XCTestCase {
     XCTAssertEqual(events[0].title, "Conference")
   }
 
+  // MARK: - Date Range Boundaries
+
+  func testEventEntirelyBeforeRangeIsExcluded() throws {
+    store.mockEvents = [
+      MockEventStore.sampleEvent(
+        title: "Yesterday's Event",
+        startDate: date(2024, 3, 14, 9, 0),
+        endDate: date(2024, 3, 14, 10, 0)
+      )
+    ]
+
+    let options = EventServiceOptions(
+      from: date(2024, 3, 15, 0, 0),
+      to: date(2024, 3, 15, 23, 59)
+    )
+
+    let events = try service.fetchEvents(options: options)
+    XCTAssertTrue(events.isEmpty)
+  }
+
+  func testEventEntirelyAfterRangeIsExcluded() throws {
+    store.mockEvents = [
+      MockEventStore.sampleEvent(
+        title: "Tomorrow's Event",
+        startDate: date(2024, 3, 16, 9, 0),
+        endDate: date(2024, 3, 16, 10, 0)
+      )
+    ]
+
+    let options = EventServiceOptions(
+      from: date(2024, 3, 15, 0, 0),
+      to: date(2024, 3, 15, 23, 59)
+    )
+
+    let events = try service.fetchEvents(options: options)
+    XCTAssertTrue(events.isEmpty)
+  }
+
+  func testEventOverlappingRangeStartIsIncluded() throws {
+    store.mockEvents = [
+      MockEventStore.sampleEvent(
+        title: "Late Night Event",
+        startDate: date(2024, 3, 14, 22, 0),
+        endDate: date(2024, 3, 15, 2, 0)
+      )
+    ]
+
+    let options = EventServiceOptions(
+      from: date(2024, 3, 15, 0, 0),
+      to: date(2024, 3, 15, 23, 59)
+    )
+
+    let events = try service.fetchEvents(options: options)
+    XCTAssertEqual(events.count, 1)
+    XCTAssertEqual(events[0].title, "Late Night Event")
+  }
+
+  func testEventEndingExactlyAtRangeStartIsExcluded() throws {
+    store.mockEvents = [
+      MockEventStore.sampleEvent(
+        title: "Ends At Midnight",
+        startDate: date(2024, 3, 14, 23, 0),
+        endDate: date(2024, 3, 15, 0, 0)
+      )
+    ]
+
+    let options = EventServiceOptions(
+      from: date(2024, 3, 15, 0, 0),
+      to: date(2024, 3, 15, 23, 59)
+    )
+
+    let events = try service.fetchEvents(options: options)
+    XCTAssertTrue(events.isEmpty)
+  }
+
+  func testEventStartingExactlyAtRangeEndIsExcluded() throws {
+    store.mockEvents = [
+      MockEventStore.sampleEvent(
+        title: "Starts At End",
+        startDate: date(2024, 3, 16, 0, 0),
+        endDate: date(2024, 3, 16, 1, 0)
+      )
+    ]
+
+    let options = EventServiceOptions(
+      from: date(2024, 3, 15, 0, 0),
+      to: date(2024, 3, 16, 0, 0)
+    )
+
+    let events = try service.fetchEvents(options: options)
+    XCTAssertTrue(events.isEmpty)
+  }
+
   // MARK: - Calendar Filtering
 
   func testIncludeCalendars() throws {

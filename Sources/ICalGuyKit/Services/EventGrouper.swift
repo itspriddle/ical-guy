@@ -42,7 +42,16 @@ public struct EventGrouper: Sendable {
       }
 
       var day = eventStart
+      // Clip to query range boundaries
+      if let from {
+        let rangeStart = calendar.startOfDay(for: from)
+        if day < rangeStart { day = rangeStart }
+      }
       while day <= effectiveEnd {
+        if let to {
+          let rangeEnd = calendar.startOfDay(for: to)
+          if day > rangeEnd { break }
+        }
         let key = formatter.string(from: day)
         grouped[key, default: []].append(event)
         guard let next = calendar.date(byAdding: .day, value: 1, to: day) else { break }

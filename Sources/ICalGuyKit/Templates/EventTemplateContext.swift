@@ -132,7 +132,13 @@ public struct EventTemplateContext: Sendable {
         "description": event.recurrence.description ?? "",
       ] as [String: Any]
 
-    // Attendees array (with optional truncation)
+    addAttendeeFields(to: &context, for: event)
+    addDateFields(to: &context, for: event)
+
+    return context
+  }
+
+  private func addAttendeeFields(to context: inout [String: Any], for event: CalendarEvent) {
     let allAttendees = event.attendees
     let totalCount = allAttendees.count
     let limit = truncation.attendees
@@ -153,10 +159,6 @@ public struct EventTemplateContext: Sendable {
     context["attendeesTotalCount"] = totalCount
     context["hasAttendeesOverflow"] = shouldTruncate
     context["attendeesOverflowCount"] = shouldTruncate ? totalCount - limit! : 0
-
-    addDateFields(to: &context, for: event)
-
-    return context
   }
 
   private func addDateFields(to context: inout [String: Any], for event: CalendarEvent) {
