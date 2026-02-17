@@ -199,6 +199,8 @@ public struct TemplateFormatter: OutputFormatter, Sendable {
       let df = DateFormatter()
       df.dateFormat = format
       df.locale = Locale(identifier: "en_US_POSIX")
+      // ISO date keys are generated in UTC; format in UTC to preserve the correct calendar date
+      df.timeZone = TimeZone(secondsFromGMT: 0)
       return df.string(from: date)
     }
     return isoDate
