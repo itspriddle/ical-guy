@@ -5,7 +5,7 @@ import ICalGuyKit
 struct EventsCommand: AsyncParsableCommand {
   static let configuration = CommandConfiguration(
     commandName: "events",
-    abstract: "Query calendar events."
+    abstract: "Query calendar events. Supports Mustache templates for text output."
   )
 
   @OptionGroup var globalOptions: GlobalOptions
@@ -41,6 +41,12 @@ struct EventsCommand: AsyncParsableCommand {
   @Option(name: .long, help: "Maximum number of events to output.")
   var limit: Int?
 
+  @Option(
+    name: .long,
+    help: "Path to a .mustache template file for event rendering (overrides config)."
+  )
+  var template: String?
+
   func run() async throws {
     let config = try? ConfigLoader.load()
 
@@ -63,9 +69,18 @@ struct EventsCommand: AsyncParsableCommand {
       excludeCalendarTypes: parsedExcludeTypes,
       limit: limit,
       groupBy: globalOptions.groupBy,
-      showEmptyDates: globalOptions.showEmptyDates
+      showEmptyDates: globalOptions.showEmptyDates,
+      timeFormat: globalOptions.timeFormat,
+      dateFormat: globalOptions.dateFormat,
+      showUid: globalOptions.showUid,
+      templateFile: template,
+      bullet: globalOptions.bullet,
+      separator: globalOptions.separator,
+      indent: globalOptions.indent,
+      truncateNotes: globalOptions.truncateNotes,
+      truncateLocation: globalOptions.truncateLocation
     )
-    let runtimeOpts = RuntimeOptions.resolve(config: config, cli: cli)
+    let runtimeOpts = try RuntimeOptions.resolve(config: config, cli: cli)
 
     let store = LiveEventStore()
     try await store.requestAccess()
@@ -95,7 +110,7 @@ struct EventsCommand: AsyncParsableCommand {
     let grouping = runtimeOpts.makeGroupingContext(dateRange: dateRange, isMultiDay: isMultiDay)
 
     let isTTY = isatty(fileno(stdout)) != 0
-    let formatter = runtimeOpts.makeFormatter(isTTY: isTTY, grouping: grouping)
+    let formatter = try runtimeOpts.makeFormatter(isTTY: isTTY, grouping: grouping)
     let output = try formatter.formatEvents(events)
     print(output)
   }
