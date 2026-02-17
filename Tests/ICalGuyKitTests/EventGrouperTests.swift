@@ -27,6 +27,7 @@ final class EventGrouperTests: XCTestCase {
     title: String = "Meeting",
     startDate: Date,
     endDate: Date,
+    isAllDay: Bool = false,
     calendarId: String = "cal-1",
     calendarTitle: String = "Work",
     calendarColor: String = "#1BADF8"
@@ -36,7 +37,7 @@ final class EventGrouperTests: XCTestCase {
       title: title,
       startDate: startDate,
       endDate: endDate,
-      isAllDay: false,
+      isAllDay: isAllDay,
       location: nil,
       notes: nil,
       url: nil,
@@ -144,6 +145,138 @@ final class EventGrouperTests: XCTestCase {
 
     XCTAssertEqual(groups.count, 3)
     XCTAssertTrue(groups.allSatisfy { $0.events.isEmpty })
+  }
+
+  // MARK: - Multi-day Event Spanning
+
+  func testMultiDayAllDayEventSpansAllDates() {
+    // 3-day all-day event: Mar 15-17 (EventKit end = Mar 18 00:00)
+    let events = [
+      makeEvent(
+        id: "1", title: "Conference",
+        startDate: date(2024, 3, 15), endDate: date(2024, 3, 18),
+        isAllDay: true),
+    ]
+
+    let groups = grouper.groupByDate(events)
+
+    XCTAssertEqual(groups.count, 3)
+    XCTAssertEqual(groups[0].date, "2024-03-15")
+    XCTAssertEqual(groups[0].events.count, 1)
+    XCTAssertEqual(groups[0].events[0].title, "Conference")
+    XCTAssertEqual(groups[1].date, "2024-03-16")
+    XCTAssertEqual(groups[1].events.count, 1)
+    XCTAssertEqual(groups[1].events[0].title, "Conference")
+    XCTAssertEqual(groups[2].date, "2024-03-17")
+    XCTAssertEqual(groups[2].events.count, 1)
+    XCTAssertEqual(groups[2].events[0].title, "Conference")
+  }
+
+  func testSingleDayAllDayEventStaysInOneGroup() {
+    // 1-day all-day event: Mar 15 (EventKit end = Mar 16 00:00)
+    let events = [
+      makeEvent(
+        id: "1", title: "Holiday",
+        startDate: date(2024, 3, 15), endDate: date(2024, 3, 16),
+        isAllDay: true),
+    ]
+
+    let groups = grouper.groupByDate(events)
+
+    XCTAssertEqual(groups.count, 1)
+    XCTAssertEqual(groups[0].date, "2024-03-15")
+    XCTAssertEqual(groups[0].events.count, 1)
+  }
+
+  func testTimedOvernightEventSpansTwoDays() {
+    // Timed event from 10pm Mar 15 to 2am Mar 16
+    let events = [
+      makeEvent(
+        id: "1", title: "Late Night",
+        startDate: date(2024, 3, 15, 22), endDate: date(2024, 3, 16, 2)),
+    ]
+
+    let groups = grouper.groupByDate(events)
+
+    XCTAssertEqual(groups.count, 2)
+    XCTAssertEqual(groups[0].date, "2024-03-15")
+    XCTAssertEqual(groups[0].events.count, 1)
+    XCTAssertEqual(groups[1].date, "2024-03-16")
+    XCTAssertEqual(groups[1].events.count, 1)
+  }
+
+  func testTimedEventEndingAtMidnightStaysInOneGroup() {
+    // Timed event from 10pm to midnight — should not spill into next day
+    let events = [
+      makeEvent(
+        id: "1", title: "Evening Event",
+        startDate: date(2024, 3, 15, 22), endDate: date(2024, 3, 16)),
+    ]
+
+    let groups = grouper.groupByDate(events)
+
+    XCTAssertEqual(groups.count, 1)
+    XCTAssertEqual(groups[0].date, "2024-03-15")
+    XCTAssertEqual(groups[0].events.count, 1)
+  }
+
+  func testMultiDayEventWithShowEmptyDates() {
+    // 3-day all-day event spanning the full range, plus an empty day
+    let events = [
+      makeEvent(
+        id: "1", title: "Conference",
+        startDate: date(2024, 3, 15), endDate: date(2024, 3, 18),
+        isAllDay: true),
+    ]
+
+    let groups = grouper.groupByDate(
+      events,
+      from: date(2024, 3, 14),
+      to: date(2024, 3, 18),
+      showEmptyDates: true
+    )
+
+    XCTAssertEqual(groups.count, 5)
+    XCTAssertEqual(groups[0].date, "2024-03-14")
+    XCTAssertEqual(groups[0].events.count, 0)
+    XCTAssertEqual(groups[1].date, "2024-03-15")
+    XCTAssertEqual(groups[1].events.count, 1)
+    XCTAssertEqual(groups[2].date, "2024-03-16")
+    XCTAssertEqual(groups[2].events.count, 1)
+    XCTAssertEqual(groups[3].date, "2024-03-17")
+    XCTAssertEqual(groups[3].events.count, 1)
+    XCTAssertEqual(groups[4].date, "2024-03-18")
+    XCTAssertEqual(groups[4].events.count, 0)
+  }
+
+  func testMultiDaySpanningWithOtherSingleDayEvents() {
+    // A spanning event plus regular single-day events
+    let events = [
+      makeEvent(
+        id: "1", title: "Conference",
+        startDate: date(2024, 3, 15), endDate: date(2024, 3, 18),
+        isAllDay: true),
+      makeEvent(
+        id: "2", title: "Lunch",
+        startDate: date(2024, 3, 16, 12), endDate: date(2024, 3, 16, 13)),
+    ]
+
+    let groups = grouper.groupByDate(events)
+
+    XCTAssertEqual(groups.count, 3)
+
+    let mar15 = groups.first { $0.date == "2024-03-15" }!
+    XCTAssertEqual(mar15.events.count, 1)
+    XCTAssertEqual(mar15.events[0].title, "Conference")
+
+    let mar16 = groups.first { $0.date == "2024-03-16" }!
+    XCTAssertEqual(mar16.events.count, 2)
+    XCTAssertTrue(mar16.events.contains { $0.title == "Conference" })
+    XCTAssertTrue(mar16.events.contains { $0.title == "Lunch" })
+
+    let mar17 = groups.first { $0.date == "2024-03-17" }!
+    XCTAssertEqual(mar17.events.count, 1)
+    XCTAssertEqual(mar17.events[0].title, "Conference")
   }
 
   // MARK: - Calendar Grouping
