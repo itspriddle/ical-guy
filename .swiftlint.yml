@@ -1,10 +1,22 @@
 disabled_rules:
   - trailing_comma
   - identifier_name
+  # Formatting rules — swift-format is authoritative for these
+  - opening_brace
+  - closing_brace
+  - closure_spacing
+  - colon
+  - comma
+  - leading_whitespace
+  - return_arrow_whitespace
+  - statement_position
+  - trailing_newline
+  - trailing_semicolon
+  - trailing_whitespace
+  - vertical_whitespace
 
 opt_in_rules:
   - empty_count
-  - closure_spacing
 
 line_length:
   warning: 120
