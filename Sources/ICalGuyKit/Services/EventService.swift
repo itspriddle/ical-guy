@@ -157,7 +157,11 @@ public struct EventService: Sendable {
   // MARK: - Conversion
 
   private func convertToCalendarEvent(_ raw: RawEvent) -> CalendarEvent {
-    CalendarEvent(
+    let meetingMatch = meetingURLParser.extractMeetingURLMatch(
+      url: raw.url, location: raw.location, notes: raw.notes
+    )
+
+    return CalendarEvent(
       id: raw.id,
       title: raw.title,
       startDate: raw.startDate,
@@ -166,9 +170,8 @@ public struct EventService: Sendable {
       location: raw.location,
       notes: raw.notes,
       url: raw.url,
-      meetingUrl: meetingURLParser.extractMeetingURL(
-        url: raw.url, location: raw.location, notes: raw.notes
-      ),
+      meetingUrl: meetingMatch?.url,
+      meetingVendor: meetingMatch?.vendor,
       calendar: CalendarInfo(
         id: raw.calendarId,
         title: raw.calendarTitle,

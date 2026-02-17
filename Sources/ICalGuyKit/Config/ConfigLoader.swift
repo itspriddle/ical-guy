@@ -1,6 +1,45 @@
 import Foundation
 import TOMLKit
 
+public struct BrowserConfig: Sendable, Equatable {
+  public let defaultBrowser: String?
+  public let meet: String?
+  public let zoom: String?
+  public let teams: String?
+  public let webex: String?
+
+  public init(
+    defaultBrowser: String? = nil,
+    meet: String? = nil,
+    zoom: String? = nil,
+    teams: String? = nil,
+    webex: String? = nil
+  ) {
+    self.defaultBrowser = defaultBrowser
+    self.meet = meet
+    self.zoom = zoom
+    self.teams = teams
+    self.webex = webex
+  }
+
+  /// Returns the browser name for a given vendor, falling back to default.
+  public func browser(for vendor: MeetingVendor?) -> String? {
+    if let vendor {
+      let vendorBrowser: String? =
+        switch vendor {
+        case .meet: meet
+        case .zoom: zoom
+        case .teams: teams
+        case .webex: webex
+        }
+      if let vendorBrowser {
+        return vendorBrowser
+      }
+    }
+    return defaultBrowser
+  }
+}
+
 public struct UserConfig: Sendable, Equatable {
   public let format: String?
   public let excludeAllDay: Bool?
@@ -32,6 +71,7 @@ public struct UserConfig: Sendable, Equatable {
   public let bullet: String?
   public let separator: String?
   public let indent: String?
+  public let browsers: BrowserConfig?
 
   public init(
     format: String? = nil,
@@ -63,7 +103,8 @@ public struct UserConfig: Sendable, Equatable {
     truncateLocation: Int? = nil,
     bullet: String? = nil,
     separator: String? = nil,
-    indent: String? = nil
+    indent: String? = nil,
+    browsers: BrowserConfig? = nil
   ) {
     self.format = format
     self.excludeAllDay = excludeAllDay
@@ -95,6 +136,7 @@ public struct UserConfig: Sendable, Equatable {
     self.bullet = bullet
     self.separator = separator
     self.indent = indent
+    self.browsers = browsers
   }
 }
 
@@ -162,6 +204,20 @@ public struct ConfigLoader: Sendable {
     let text = table["text"] as? TOMLTable
     let free = table["free"] as? TOMLTable
     let templates = table["templates"] as? TOMLTable
+    let browsersTable = table["browsers"] as? TOMLTable
+
+    let browserConfig: BrowserConfig? =
+      if let browsersTable {
+        BrowserConfig(
+          defaultBrowser: browsersTable["default"] as? String,
+          meet: browsersTable["meet"] as? String,
+          zoom: browsersTable["zoom"] as? String,
+          teams: browsersTable["teams"] as? String,
+          webex: browsersTable["webex"] as? String
+        )
+      } else {
+        nil
+      }
 
     return UserConfig(
       format: format,
@@ -193,7 +249,8 @@ public struct ConfigLoader: Sendable {
       truncateLocation: templates?["truncate-location"] as? Int,
       bullet: templates?["bullet"] as? String,
       separator: templates?["separator"] as? String,
-      indent: templates?["indent"] as? String
+      indent: templates?["indent"] as? String,
+      browsers: browserConfig
     )
   }
 

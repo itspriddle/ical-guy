@@ -101,4 +101,50 @@ final class MeetingURLParserTests: XCTestCase {
       url: "https://example.com/page", location: nil, notes: nil)
     XCTAssertNil(result)
   }
+
+  // MARK: - Vendor Identification
+
+  func testMatchIdentifiesMeetVendor() {
+    let match = parser.extractMeetingURLMatch(
+      url: nil, location: nil, notes: "https://meet.google.com/abc-defg-hij")
+    XCTAssertEqual(match?.vendor, .meet)
+    XCTAssertEqual(match?.url, "https://meet.google.com/abc-defg-hij")
+  }
+
+  func testMatchIdentifiesZoomVendor() {
+    let match = parser.extractMeetingURLMatch(
+      url: nil, location: nil, notes: "https://us02web.zoom.us/j/1234567890")
+    XCTAssertEqual(match?.vendor, .zoom)
+    XCTAssertEqual(match?.url, "https://us02web.zoom.us/j/1234567890")
+  }
+
+  func testMatchIdentifiesTeamsVendor() {
+    let url = "https://teams.microsoft.com/l/meetup-join/19%3ameeting_abc123"
+    let match = parser.extractMeetingURLMatch(url: nil, location: nil, notes: url)
+    XCTAssertEqual(match?.vendor, .teams)
+    XCTAssertEqual(match?.url, url)
+  }
+
+  func testMatchIdentifiesWebexVendor() {
+    let match = parser.extractMeetingURLMatch(
+      url: nil, location: nil, notes: "https://company.webex.com/meet/jsmith")
+    XCTAssertEqual(match?.vendor, .webex)
+    XCTAssertEqual(match?.url, "https://company.webex.com/meet/jsmith")
+  }
+
+  func testMatchReturnsNilForNoMatch() {
+    let match = parser.extractMeetingURLMatch(
+      url: nil, location: "Conference Room B", notes: "Bring your laptop")
+    XCTAssertNil(match)
+  }
+
+  func testMatchPreservesFieldPriority() {
+    let match = parser.extractMeetingURLMatch(
+      url: "https://meet.google.com/aaa-bbbb-ccc",
+      location: "https://us02web.zoom.us/j/111",
+      notes: nil
+    )
+    XCTAssertEqual(match?.vendor, .meet)
+    XCTAssertEqual(match?.url, "https://meet.google.com/aaa-bbbb-ccc")
+  }
 }
