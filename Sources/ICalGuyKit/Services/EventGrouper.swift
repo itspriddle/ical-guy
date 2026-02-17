@@ -18,9 +18,36 @@ public struct EventGrouper: Sendable {
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = [.withFullDate]
 
-    let grouped = Dictionary(grouping: events) { event -> String in
-      let day = calendar.startOfDay(for: event.startDate)
-      return formatter.string(from: day)
+    var grouped: [String: [CalendarEvent]] = [:]
+
+    for event in events {
+      let eventStart = calendar.startOfDay(for: event.startDate)
+      let eventEnd = calendar.startOfDay(for: event.endDate)
+
+      let effectiveEnd: Date
+      if event.isAllDay {
+        // All-day events: EventKit sets endDate to midnight of the *next* day.
+        // Subtract 1 day so a 1-day event stays in 1 bucket, a 3-day event spans 3 days.
+        effectiveEnd = calendar.date(byAdding: .day, value: -1, to: eventEnd) ?? eventEnd
+      } else {
+        // Timed events ending exactly at midnight: don't spill into the next day
+        let endComponents = calendar.dateComponents([.hour, .minute, .second], from: event.endDate)
+        if endComponents.hour == 0 && endComponents.minute == 0 && endComponents.second == 0
+          && eventEnd > eventStart
+        {
+          effectiveEnd = calendar.date(byAdding: .day, value: -1, to: eventEnd) ?? eventEnd
+        } else {
+          effectiveEnd = eventEnd
+        }
+      }
+
+      var day = eventStart
+      while day <= effectiveEnd {
+        let key = formatter.string(from: day)
+        grouped[key, default: []].append(event)
+        guard let next = calendar.date(byAdding: .day, value: 1, to: day) else { break }
+        day = next
+      }
     }
 
     if showEmptyDates, let from, let to {
