@@ -164,6 +164,14 @@ characters (0 = no limit).
 Overrides the
 .B [templates] truncate\-location
 config value.
+.TP
+.BI \-\-max\-attendees " n"
+Maximum number of attendees to show in text output (0 = no limit).
+When truncated, a "... and N more" line is shown.
+Overrides the
+.B [templates] max\-attendees
+config value.
+JSON output always includes all attendees.
 .SH EVENTS OPTIONS
 .TP
 .BI \-\-from " date"
@@ -886,6 +894,7 @@ indent = "  "
 separator = "\-\-\-"
 truncate\-notes = 80
 truncate\-location = 40
+max\-attendees = 10
 .fi
 .RE
 .SS Browser Selection
@@ -1068,6 +1077,19 @@ Pre\-formatted display string (e.g. "John Doe <john@example.com> (accepted)").
 Use triple\-stache
 .B {{{displayString}}}
 to avoid HTML escaping.
+.PP
+Attendee overflow variables (available when
+.B \-\-max\-attendees
+truncates the list):
+.TP
+.B {{attendeesTotalCount}}
+Total number of attendees before truncation.
+.TP
+.B {{#hasAttendeesOverflow}}
+True when the attendee list has been truncated.
+.TP
+.B {{attendeesOverflowCount}}
+Number of attendees hidden by truncation.
 .SS Display Toggles
 Controlled by config or CLI flags.
 .TP

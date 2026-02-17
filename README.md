@@ -109,6 +109,7 @@ OPTIONS:
   --indent <string>           Indentation for detail lines (default: 4 spaces).
   --truncate-notes <n>        Truncate notes to N characters (0 = no limit).
   --truncate-location <n>     Truncate location to N characters (0 = no limit).
+  --max-attendees <n>         Max attendees in text output (0 = no limit).
 ```
 
 ### Grouping
@@ -565,6 +566,7 @@ indent = "  "                           # Indentation for detail lines
 separator = "---"                       # Separator between events
 truncate-notes = 80                     # Truncate notes to N characters
 truncate-location = 40                  # Truncate location to N characters
+max-attendees = 10                      # Max attendees in text output (0 = no limit)
 ```
 
 Template files are loaded from `~/.config/ical-guy/templates/` (relative paths) or from absolute paths. CLI `--template` flag takes precedence over `event-file`, which takes precedence over `event` inline.
@@ -611,7 +613,7 @@ ANSI formatting lambdas (disabled with `--no-color`):
 | `{{#dim}}text{{/dim}}` | Dimmed text |
 | `{{#calendarColor}}text{{/calendarColor}}` | Calendar's color |
 
-Iterate attendees with `{{#attendees}}...{{/attendees}}`, using `{{name}}`, `{{email}}`, `{{status}}`, and `{{{displayString}}}` inside the loop.
+Iterate attendees with `{{#attendees}}...{{/attendees}}`, using `{{name}}`, `{{email}}`, `{{status}}`, and `{{{displayString}}}` inside the loop. Attendee overflow variables (when `--max-attendees` truncates): `{{attendeesTotalCount}}`, `{{#hasAttendeesOverflow}}`, `{{attendeesOverflowCount}}`.
 
 Example templates:
 

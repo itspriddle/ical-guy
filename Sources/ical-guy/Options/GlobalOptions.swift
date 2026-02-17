@@ -37,4 +37,7 @@ struct GlobalOptions: ParsableArguments {
 
   @Option(name: .long, help: "Truncate location to N characters (0 = no limit).")
   var truncateLocation: Int?
+
+  @Option(name: .long, help: "Maximum number of attendees to show in text output (0 = no limit).")
+  var maxAttendees: Int?
 }

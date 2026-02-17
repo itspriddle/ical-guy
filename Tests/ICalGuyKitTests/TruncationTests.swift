@@ -7,6 +7,16 @@ import XCTest
 // MARK: - TruncationLimits Unit Tests
 
 final class TruncationLimitsTests: XCTestCase {
+  func testAttendeesPropertyDefaultsNil() {
+    let limits = TruncationLimits()
+    XCTAssertNil(limits.attendees)
+  }
+
+  func testAttendeesPropertySetInInit() {
+    let limits = TruncationLimits(attendees: 5)
+    XCTAssertEqual(limits.attendees, 5)
+  }
+
   func testNoTruncationWhenLimitIsNil() {
     let result = TruncationLimits.truncate("Hello World", limit: nil)
     XCTAssertEqual(result, "Hello World")
@@ -83,7 +93,8 @@ final class TruncationContextTests: XCTestCase {
   )
 
   private func makeEvent(
-    location: String? = nil, notes: String? = nil
+    location: String? = nil, notes: String? = nil,
+    attendees: [Attendee] = []
   ) -> CalendarEvent {
     CalendarEvent(
       id: "evt-1",
@@ -95,8 +106,21 @@ final class TruncationContextTests: XCTestCase {
       notes: notes,
       url: nil,
       calendar: testCalendar,
+      attendees: attendees,
       status: "confirmed"
     )
+  }
+
+  private func makeAttendees(count: Int) -> [Attendee] {
+    (0..<count).map { i in
+      Attendee(
+        name: "Person \(i)",
+        email: "person\(i)@example.com",
+        status: .accepted,
+        role: .required,
+        isCurrentUser: i == 0
+      )
+    }
   }
 
   func testNotesTruncatedInContext() {
@@ -185,6 +209,106 @@ final class TruncationContextTests: XCTestCase {
     let result = template.render(context)
     XCTAssertEqual(result, "Confe... | Weekly ...")
   }
+
+  // MARK: - Attendees Truncation Tests
+
+  func testAttendeesNotTruncatedWhenLimitNil() {
+    let ctx = EventTemplateContext()
+    let event = makeEvent(attendees: makeAttendees(count: 5))
+    let context = ctx.buildContext(for: event)
+
+    let attendees = context["attendees"] as? [[String: Any]]
+    XCTAssertEqual(attendees?.count, 5)
+    XCTAssertEqual(context["attendeesTotalCount"] as? Int, 5)
+    XCTAssertEqual(context["hasAttendeesOverflow"] as? Bool, false)
+    XCTAssertEqual(context["attendeesOverflowCount"] as? Int, 0)
+  }
+
+  func testAttendeesNotTruncatedWhenBelowLimit() {
+    let ctx = EventTemplateContext(
+      truncation: TruncationLimits(attendees: 5)
+    )
+    let event = makeEvent(attendees: makeAttendees(count: 2))
+    let context = ctx.buildContext(for: event)
+
+    let attendees = context["attendees"] as? [[String: Any]]
+    XCTAssertEqual(attendees?.count, 2)
+    XCTAssertEqual(context["hasAttendeesOverflow"] as? Bool, false)
+    XCTAssertEqual(context["attendeesOverflowCount"] as? Int, 0)
+  }
+
+  func testAttendeesTruncatedWhenExceedingLimit() {
+    let ctx = EventTemplateContext(
+      truncation: TruncationLimits(attendees: 2)
+    )
+    let event = makeEvent(attendees: makeAttendees(count: 5))
+    let context = ctx.buildContext(for: event)
+
+    let attendees = context["attendees"] as? [[String: Any]]
+    XCTAssertEqual(attendees?.count, 2)
+    XCTAssertEqual(attendees?.first?["name"] as? String, "Person 0")
+    XCTAssertEqual(attendees?.last?["name"] as? String, "Person 1")
+  }
+
+  func testAttendeesOverflowCountCorrect() {
+    let ctx = EventTemplateContext(
+      truncation: TruncationLimits(attendees: 2)
+    )
+    let event = makeEvent(attendees: makeAttendees(count: 5))
+    let context = ctx.buildContext(for: event)
+
+    XCTAssertEqual(context["attendeesOverflowCount"] as? Int, 3)
+  }
+
+  func testHasAttendeesOverflowFalseWhenNotTruncated() {
+    let ctx = EventTemplateContext(
+      truncation: TruncationLimits(attendees: 10)
+    )
+    let event = makeEvent(attendees: makeAttendees(count: 3))
+    let context = ctx.buildContext(for: event)
+
+    XCTAssertEqual(context["hasAttendeesOverflow"] as? Bool, false)
+  }
+
+  func testAttendeesTotalCountReflectsFullArray() {
+    let ctx = EventTemplateContext(
+      truncation: TruncationLimits(attendees: 2)
+    )
+    let event = makeEvent(attendees: makeAttendees(count: 5))
+    let context = ctx.buildContext(for: event)
+
+    XCTAssertEqual(context["attendeesTotalCount"] as? Int, 5)
+  }
+
+  func testAttendeesZeroLimitMeansNoTruncation() {
+    let ctx = EventTemplateContext(
+      truncation: TruncationLimits(attendees: 0)
+    )
+    let event = makeEvent(attendees: makeAttendees(count: 5))
+    let context = ctx.buildContext(for: event)
+
+    let attendees = context["attendees"] as? [[String: Any]]
+    XCTAssertEqual(attendees?.count, 5)
+    XCTAssertEqual(context["hasAttendeesOverflow"] as? Bool, false)
+  }
+
+  func testAttendeesOverflowRendersInMustacheTemplate() throws {
+    let ctx = EventTemplateContext(
+      truncation: TruncationLimits(attendees: 2)
+    )
+    let event = makeEvent(attendees: makeAttendees(count: 5))
+    let context = ctx.buildContext(for: event)
+
+    let templateStr =
+      "{{#attendees}}{{{name}}}\n{{/attendees}}"
+      + "{{#hasAttendeesOverflow}}... and {{attendeesOverflowCount}} more{{/hasAttendeesOverflow}}"
+    let template = try MustacheTemplate(string: templateStr)
+    let result = template.render(context)
+    XCTAssertTrue(result.contains("Person 0"))
+    XCTAssertTrue(result.contains("Person 1"))
+    XCTAssertFalse(result.contains("Person 2"))
+    XCTAssertTrue(result.contains("... and 3 more"))
+  }
 }
 
 // MARK: - Config Integration Tests
@@ -228,5 +352,26 @@ final class TruncationConfigTests: XCTestCase {
       truncation: truncation
     )
     XCTAssertTrue(formatter is TemplateFormatter)
+  }
+
+  func testUserConfigMaxAttendeesField() {
+    let config = UserConfig(maxAttendees: 10)
+    XCTAssertEqual(config.maxAttendees, 10)
+  }
+
+  func testRuntimeOptionsResolveMaxAttendees() throws {
+    let config = UserConfig(maxAttendees: 10)
+    let cli = CLIOptions()
+    let opts = try RuntimeOptions.resolve(config: config, cli: cli)
+
+    XCTAssertEqual(opts.truncation.attendees, 10)
+  }
+
+  func testCLIOverridesConfigForMaxAttendees() throws {
+    let config = UserConfig(maxAttendees: 10)
+    let cli = CLIOptions(maxAttendees: 3)
+    let opts = try RuntimeOptions.resolve(config: config, cli: cli)
+
+    XCTAssertEqual(opts.truncation.attendees, 3)
   }
 }

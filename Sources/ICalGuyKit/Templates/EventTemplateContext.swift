@@ -18,10 +18,12 @@ public struct TemplateDateFormats: Sendable {
 public struct TruncationLimits: Sendable, Equatable {
   public let notes: Int?
   public let location: Int?
+  public let attendees: Int?
 
-  public init(notes: Int? = nil, location: Int? = nil) {
+  public init(notes: Int? = nil, location: Int? = nil, attendees: Int? = nil) {
     self.notes = notes
     self.location = location
+    self.attendees = attendees
   }
 
   /// Truncates a string to the given limit, appending "..." if truncated.
@@ -130,8 +132,14 @@ public struct EventTemplateContext: Sendable {
         "description": event.recurrence.description ?? "",
       ] as [String: Any]
 
-    // Attendees array
-    context["attendees"] = event.attendees.map { attendee in
+    // Attendees array (with optional truncation)
+    let allAttendees = event.attendees
+    let totalCount = allAttendees.count
+    let limit = truncation.attendees
+    let shouldTruncate = limit != nil && limit! > 0 && totalCount > limit!
+    let displayAttendees = shouldTruncate ? Array(allAttendees.prefix(limit!)) : allAttendees
+
+    context["attendees"] = displayAttendees.map { attendee in
       var entry: [String: Any] = [
         "name": attendee.name ?? "",
         "email": attendee.email ?? "",
@@ -142,6 +150,9 @@ public struct EventTemplateContext: Sendable {
       entry["displayString"] = Self.formatAttendeeDisplay(attendee)
       return entry
     }
+    context["attendeesTotalCount"] = totalCount
+    context["hasAttendeesOverflow"] = shouldTruncate
+    context["attendeesOverflowCount"] = shouldTruncate ? totalCount - limit! : 0
 
     addDateFields(to: &context, for: event)
 

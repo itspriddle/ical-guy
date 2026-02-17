@@ -78,7 +78,8 @@ struct EventsCommand: AsyncParsableCommand {
       separator: globalOptions.separator,
       indent: globalOptions.indent,
       truncateNotes: globalOptions.truncateNotes,
-      truncateLocation: globalOptions.truncateLocation
+      truncateLocation: globalOptions.truncateLocation,
+      maxAttendees: globalOptions.maxAttendees
     )
     let runtimeOpts = try RuntimeOptions.resolve(config: config, cli: cli)
 
