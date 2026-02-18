@@ -57,7 +57,7 @@ struct FreeCommand: AsyncParsableCommand {
   var workEnd: String?
 
   func run() async throws {
-    let config = try? ConfigLoader.load()
+    let config = try? ConfigLoader.load(from: globalOptions.config)
 
     let store = LiveEventStore()
     try await store.requestAccess()

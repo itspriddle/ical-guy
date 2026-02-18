@@ -11,11 +11,15 @@ struct CalendarsCommand: AsyncParsableCommand {
   @OptionGroup var globalOptions: GlobalOptions
 
   func run() async throws {
-    let config = try? ConfigLoader.load()
+    let config = try? ConfigLoader.load(from: globalOptions.config)
+
+    let parsedHide = globalOptions.hide?.split(separator: ",")
+      .map { $0.trimmingCharacters(in: .whitespaces) }
 
     let cli = CLIOptions(
       format: globalOptions.format,
-      noColor: globalOptions.noColor
+      noColor: globalOptions.noColor,
+      hide: parsedHide
     )
     let runtimeOpts = try RuntimeOptions.resolve(config: config, cli: cli)
 

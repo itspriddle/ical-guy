@@ -9,6 +9,7 @@ public struct EventServiceOptions: Sendable {
   public let excludeCalendarTypes: [String]?
   public let excludeAllDay: Bool
   public let limit: Int?
+  public let overlapsWith: Date?
 
   public init(
     from: Date,
@@ -18,7 +19,8 @@ public struct EventServiceOptions: Sendable {
     includeCalendarTypes: [String]? = nil,
     excludeCalendarTypes: [String]? = nil,
     excludeAllDay: Bool = false,
-    limit: Int? = nil
+    limit: Int? = nil,
+    overlapsWith: Date? = nil
   ) {
     self.from = from
     self.to = to
@@ -28,6 +30,7 @@ public struct EventServiceOptions: Sendable {
     self.excludeCalendarTypes = excludeCalendarTypes
     self.excludeAllDay = excludeAllDay
     self.limit = limit
+    self.overlapsWith = overlapsWith
   }
 }
 
@@ -79,6 +82,11 @@ public struct EventService: Sendable {
     // Filter all-day events
     if options.excludeAllDay {
       rawEvents = rawEvents.filter { !$0.isAllDay }
+    }
+
+    // Filter to events overlapping a specific point in time
+    if let overlap = options.overlapsWith {
+      rawEvents = rawEvents.filter { $0.startDate <= overlap && $0.endDate > overlap }
     }
 
     // Sort by start date, then title

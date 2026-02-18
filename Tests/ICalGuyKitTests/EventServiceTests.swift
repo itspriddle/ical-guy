@@ -430,6 +430,137 @@ final class EventServiceTests: XCTestCase {
     XCTAssertNil(events[0].meetingUrl)
   }
 
+  // MARK: - Overlaps With
+
+  func testOverlapsWithIncludesCurrentEvent() throws {
+    // Event started 30min ago, ends in 30min
+    store.mockEvents = [
+      MockEventStore.sampleEvent(
+        title: "In Progress",
+        startDate: date(2024, 3, 15, 9, 30),
+        endDate: date(2024, 3, 15, 10, 30)
+      )
+    ]
+
+    let now = date(2024, 3, 15, 10, 0)
+    let options = EventServiceOptions(
+      from: date(2024, 3, 15, 0, 0),
+      to: date(2024, 3, 15, 23, 59),
+      overlapsWith: now
+    )
+
+    let events = try service.fetchEvents(options: options)
+    XCTAssertEqual(events.count, 1)
+    XCTAssertEqual(events[0].title, "In Progress")
+  }
+
+  func testOverlapsWithExcludesEndedEvent() throws {
+    // Event ended 5 minutes ago
+    store.mockEvents = [
+      MockEventStore.sampleEvent(
+        title: "Already Ended",
+        startDate: date(2024, 3, 15, 9, 0),
+        endDate: date(2024, 3, 15, 9, 55)
+      )
+    ]
+
+    let now = date(2024, 3, 15, 10, 0)
+    let options = EventServiceOptions(
+      from: date(2024, 3, 15, 0, 0),
+      to: date(2024, 3, 15, 23, 59),
+      overlapsWith: now
+    )
+
+    let events = try service.fetchEvents(options: options)
+    XCTAssertTrue(events.isEmpty)
+  }
+
+  func testOverlapsWithExcludesFutureEvent() throws {
+    // Event starts in 5 minutes
+    store.mockEvents = [
+      MockEventStore.sampleEvent(
+        title: "Starting Soon",
+        startDate: date(2024, 3, 15, 10, 5),
+        endDate: date(2024, 3, 15, 11, 0)
+      )
+    ]
+
+    let now = date(2024, 3, 15, 10, 0)
+    let options = EventServiceOptions(
+      from: date(2024, 3, 15, 0, 0),
+      to: date(2024, 3, 15, 23, 59),
+      overlapsWith: now
+    )
+
+    let events = try service.fetchEvents(options: options)
+    XCTAssertTrue(events.isEmpty)
+  }
+
+  func testOverlapsWithIncludesAllDayEvent() throws {
+    store.mockEvents = [
+      MockEventStore.sampleEvent(
+        title: "All Day",
+        startDate: date(2024, 3, 15, 0, 0),
+        endDate: date(2024, 3, 16, 0, 0),
+        isAllDay: true
+      )
+    ]
+
+    let now = date(2024, 3, 15, 10, 0)
+    let options = EventServiceOptions(
+      from: date(2024, 3, 15, 0, 0),
+      to: date(2024, 3, 15, 23, 59),
+      overlapsWith: now
+    )
+
+    let events = try service.fetchEvents(options: options)
+    XCTAssertEqual(events.count, 1)
+    XCTAssertEqual(events[0].title, "All Day")
+  }
+
+  func testOverlapsWithIncludesEventStartingExactlyAtNow() throws {
+    // Event starts exactly at "now" — should be included (uses <=)
+    store.mockEvents = [
+      MockEventStore.sampleEvent(
+        title: "Starting Now",
+        startDate: date(2024, 3, 15, 10, 0),
+        endDate: date(2024, 3, 15, 11, 0)
+      )
+    ]
+
+    let now = date(2024, 3, 15, 10, 0)
+    let options = EventServiceOptions(
+      from: date(2024, 3, 15, 0, 0),
+      to: date(2024, 3, 15, 23, 59),
+      overlapsWith: now
+    )
+
+    let events = try service.fetchEvents(options: options)
+    XCTAssertEqual(events.count, 1)
+    XCTAssertEqual(events[0].title, "Starting Now")
+  }
+
+  func testOverlapsWithExcludesEventEndingExactlyAtNow() throws {
+    // Event ends exactly at "now" — should be excluded (uses >)
+    store.mockEvents = [
+      MockEventStore.sampleEvent(
+        title: "Just Ended",
+        startDate: date(2024, 3, 15, 9, 0),
+        endDate: date(2024, 3, 15, 10, 0)
+      )
+    ]
+
+    let now = date(2024, 3, 15, 10, 0)
+    let options = EventServiceOptions(
+      from: date(2024, 3, 15, 0, 0),
+      to: date(2024, 3, 15, 23, 59),
+      overlapsWith: now
+    )
+
+    let events = try service.fetchEvents(options: options)
+    XCTAssertTrue(events.isEmpty)
+  }
+
   // MARK: - Helpers
 
   private func date(_ year: Int, _ month: Int, _ day: Int, _ hour: Int, _ minute: Int) -> Date {
