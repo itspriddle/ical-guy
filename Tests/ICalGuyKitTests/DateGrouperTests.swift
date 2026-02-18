@@ -3,15 +3,15 @@ import XCTest
 
 @testable import ICalGuyKit
 
-final class EventGrouperTests: XCTestCase {
-  private var grouper: EventGrouper!
+final class DateGrouperTests: XCTestCase {
+  private var grouper: DateGrouper!
   private var cal: Calendar!
 
   override func setUp() {
     super.setUp()
     cal = Calendar(identifier: .gregorian)
     cal.timeZone = TimeZone(identifier: "America/New_York")!
-    grouper = EventGrouper(calendar: cal)
+    grouper = DateGrouper(calendar: cal)
   }
 
   // MARK: - Helpers
@@ -49,24 +49,6 @@ final class EventGrouperTests: XCTestCase {
         color: calendarColor
       ),
       status: "confirmed"
-    )
-  }
-
-  private func makeReminder(
-    id: String = "rem-1",
-    title: String = "Task",
-    listId: String = "list-1",
-    listTitle: String = "Personal"
-  ) -> Reminder {
-    Reminder(
-      id: id,
-      title: title,
-      list: ReminderListInfo(
-        id: listId,
-        title: listTitle,
-        color: "#FF0000",
-        source: "iCloud"
-      )
     )
   }
 
@@ -350,86 +332,5 @@ final class EventGrouperTests: XCTestCase {
     XCTAssertEqual(groups[0].events.count, 2)  // Conference + Meeting
     XCTAssertEqual(groups[1].date, "2024-03-16")
     XCTAssertEqual(groups[1].events.count, 1)  // Conference only
-  }
-
-  // MARK: - Calendar Grouping
-
-  func testGroupByCalendar() {
-    let events = [
-      makeEvent(
-        id: "1", title: "Work Event",
-        startDate: date(2024, 3, 15, 9), endDate: date(2024, 3, 15, 10),
-        calendarId: "cal-1", calendarTitle: "Work"
-      ),
-      makeEvent(
-        id: "2", title: "Personal Event",
-        startDate: date(2024, 3, 15, 11), endDate: date(2024, 3, 15, 12),
-        calendarId: "cal-2", calendarTitle: "Personal"
-      ),
-      makeEvent(
-        id: "3", title: "Another Work Event",
-        startDate: date(2024, 3, 15, 14), endDate: date(2024, 3, 15, 15),
-        calendarId: "cal-1", calendarTitle: "Work"
-      ),
-    ]
-
-    let groups = grouper.groupByCalendar(events)
-
-    XCTAssertEqual(groups.count, 2)
-    // Sorted by title: Personal < Work
-    XCTAssertEqual(groups[0].calendar.title, "Personal")
-    XCTAssertEqual(groups[0].events.count, 1)
-    XCTAssertEqual(groups[1].calendar.title, "Work")
-    XCTAssertEqual(groups[1].events.count, 2)
-  }
-
-  func testGroupByCalendarSortedByStartDate() {
-    let events = [
-      makeEvent(
-        id: "1", title: "Late",
-        startDate: date(2024, 3, 15, 14), endDate: date(2024, 3, 15, 15),
-        calendarId: "cal-1", calendarTitle: "Work"
-      ),
-      makeEvent(
-        id: "2", title: "Early",
-        startDate: date(2024, 3, 15, 9), endDate: date(2024, 3, 15, 10),
-        calendarId: "cal-1", calendarTitle: "Work"
-      ),
-    ]
-
-    let groups = grouper.groupByCalendar(events)
-
-    XCTAssertEqual(groups.count, 1)
-    XCTAssertEqual(groups[0].events[0].title, "Early")
-    XCTAssertEqual(groups[0].events[1].title, "Late")
-  }
-
-  func testGroupByCalendarEmpty() {
-    let groups = grouper.groupByCalendar([])
-    XCTAssertTrue(groups.isEmpty)
-  }
-
-  // MARK: - Reminder List Grouping
-
-  func testGroupRemindersByList() {
-    let reminders = [
-      makeReminder(id: "1", title: "Buy milk", listId: "list-1", listTitle: "Shopping"),
-      makeReminder(id: "2", title: "Call dentist", listId: "list-2", listTitle: "Personal"),
-      makeReminder(id: "3", title: "Buy eggs", listId: "list-1", listTitle: "Shopping"),
-    ]
-
-    let groups = grouper.groupRemindersByList(reminders)
-
-    XCTAssertEqual(groups.count, 2)
-    // Sorted by title: Personal < Shopping
-    XCTAssertEqual(groups[0].list.title, "Personal")
-    XCTAssertEqual(groups[0].reminders.count, 1)
-    XCTAssertEqual(groups[1].list.title, "Shopping")
-    XCTAssertEqual(groups[1].reminders.count, 2)
-  }
-
-  func testGroupRemindersByListEmpty() {
-    let groups = grouper.groupRemindersByList([])
-    XCTAssertTrue(groups.isEmpty)
   }
 }
