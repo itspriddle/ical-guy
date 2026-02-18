@@ -1,6 +1,9 @@
 import ArgumentParser
 
 struct GlobalOptions: ParsableArguments {
+  @Option(name: .long, help: "Path to config file (default: ~/.config/ical-guy/config.toml).")
+  var config: String?
+
   @Option(
     name: .long, help: "Output format: json or text (auto-detects based on TTY if not specified).")
   var format: String?
@@ -40,4 +43,11 @@ struct GlobalOptions: ParsableArguments {
 
   @Option(name: .long, help: "Maximum number of attendees to show in text output (0 = no limit).")
   var maxAttendees: Int?
+
+  @Option(
+    name: .long,
+    help:
+      "Hide properties in text output (comma-separated: calendar, location, attendees, meeting-url, notes, uid)."
+  )
+  var hide: String?
 }

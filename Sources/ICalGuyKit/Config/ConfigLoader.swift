@@ -166,10 +166,14 @@ public struct ConfigLoader: Sendable {
   }
 
   /// Load config from the given path, or the default path if nil.
+  /// Precedence: explicit path > ICAL_GUY_CONFIG env var > default path.
   /// Returns nil if the file doesn't exist (config is optional).
   /// Throws if the file exists but can't be parsed.
   public static func load(from path: String? = nil) throws -> UserConfig? {
-    let configPath = path ?? defaultPath
+    let configPath =
+      path
+      ?? ProcessInfo.processInfo.environment["ICAL_GUY_CONFIG"]
+      ?? defaultPath
 
     guard FileManager.default.fileExists(atPath: configPath) else {
       return nil

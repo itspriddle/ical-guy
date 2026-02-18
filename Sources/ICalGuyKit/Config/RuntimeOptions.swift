@@ -29,6 +29,7 @@ public struct CLIOptions: Sendable {
   public let truncateNotes: Int?
   public let truncateLocation: Int?
   public let maxAttendees: Int?
+  public let hide: [String]?
 
   public init(
     format: String? = nil,
@@ -50,7 +51,8 @@ public struct CLIOptions: Sendable {
     indent: String? = nil,
     truncateNotes: Int? = nil,
     truncateLocation: Int? = nil,
-    maxAttendees: Int? = nil
+    maxAttendees: Int? = nil,
+    hide: [String]? = nil
   ) {
     self.format = format
     self.noColor = noColor
@@ -72,6 +74,7 @@ public struct CLIOptions: Sendable {
     self.truncateNotes = truncateNotes
     self.truncateLocation = truncateLocation
     self.maxAttendees = maxAttendees
+    self.hide = hide
   }
 }
 
@@ -105,6 +108,8 @@ public struct RuntimeOptions: Sendable {
     let groupBy = (cli.groupBy ?? config?.groupBy).flatMap(GroupingMode.init)
     let templates = try Self.compileTemplates(config, cliTemplateFile: cli.templateFile)
 
+    let hideSet = Set(cli.hide?.map { $0.lowercased() } ?? [])
+
     return RuntimeOptions(
       format: format,
       noColor: cli.noColor,
@@ -115,12 +120,12 @@ public struct RuntimeOptions: Sendable {
       excludeCalendarTypes: cli.excludeCalendarTypes ?? config?.excludeCalendarTypes,
       limit: cli.limit,
       textOptions: TextFormatterOptions(
-        showCalendar: config?.showCalendar ?? true,
-        showLocation: config?.showLocation ?? true,
-        showAttendees: config?.showAttendees ?? true,
-        showMeetingUrl: config?.showMeetingUrl ?? true,
-        showNotes: config?.showNotes ?? false,
-        showUid: cli.showUid || (config?.showUid ?? false)
+        showCalendar: (config?.showCalendar ?? true) && !hideSet.contains("calendar"),
+        showLocation: (config?.showLocation ?? true) && !hideSet.contains("location"),
+        showAttendees: (config?.showAttendees ?? true) && !hideSet.contains("attendees"),
+        showMeetingUrl: (config?.showMeetingUrl ?? true) && !hideSet.contains("meeting-url"),
+        showNotes: (config?.showNotes ?? false) && !hideSet.contains("notes"),
+        showUid: (cli.showUid || (config?.showUid ?? false)) && !hideSet.contains("uid")
       ),
       groupBy: groupBy,
       showEmptyDates: cli.showEmptyDates || (config?.showEmptyDates ?? false),
@@ -144,7 +149,9 @@ public struct RuntimeOptions: Sendable {
     )
   }
 
-  public func toEventServiceOptions(from: Date, to: Date) -> EventServiceOptions {
+  public func toEventServiceOptions(
+    from: Date, to: Date, overlapsWith: Date? = nil
+  ) -> EventServiceOptions {
     EventServiceOptions(
       from: from,
       to: to,
@@ -153,7 +160,8 @@ public struct RuntimeOptions: Sendable {
       includeCalendarTypes: includeCalendarTypes,
       excludeCalendarTypes: excludeCalendarTypes,
       excludeAllDay: excludeAllDay,
-      limit: limit
+      limit: limit,
+      overlapsWith: overlapsWith
     )
   }
 
