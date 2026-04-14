@@ -197,30 +197,30 @@ public struct ConfigLoader: Sendable {
   }
 
   private static func parseConfig(_ table: TOMLTable) -> UserConfig {
-    let defaults = table["defaults"] as? TOMLTable
+    let defaults = table["defaults"]?.table
 
-    let format = defaults?["format"] as? String
-    let excludeAllDay = defaults?["exclude-all-day"] as? Bool
+    let format = defaults?["format"]?.string
+    let excludeAllDay = defaults?["exclude-all-day"]?.bool
     let includeCalendars = tomlStringArray(defaults?["include-calendars"])
     let excludeCalendars = tomlStringArray(defaults?["exclude-calendars"])
     let includeCalendarTypes = tomlStringArray(defaults?["include-cal-types"])
     let excludeCalendarTypes = tomlStringArray(defaults?["exclude-cal-types"])
-    let groupBy = defaults?["group-by"] as? String
-    let showEmptyDates = defaults?["show-empty-dates"] as? Bool
+    let groupBy = defaults?["group-by"]?.string
+    let showEmptyDates = defaults?["show-empty-dates"]?.bool
 
-    let text = table["text"] as? TOMLTable
-    let free = table["free"] as? TOMLTable
-    let templates = table["templates"] as? TOMLTable
-    let browsersTable = table["browsers"] as? TOMLTable
+    let text = table["text"]?.table
+    let free = table["free"]?.table
+    let templates = table["templates"]?.table
+    let browsersTable = table["browsers"]?.table
 
     let browserConfig: BrowserConfig? =
       if let browsersTable {
         BrowserConfig(
-          defaultBrowser: browsersTable["default"] as? String,
-          meet: browsersTable["meet"] as? String,
-          zoom: browsersTable["zoom"] as? String,
-          teams: browsersTable["teams"] as? String,
-          webex: browsersTable["webex"] as? String
+          defaultBrowser: browsersTable["default"]?.string,
+          meet: browsersTable["meet"]?.string,
+          zoom: browsersTable["zoom"]?.string,
+          teams: browsersTable["teams"]?.string,
+          webex: browsersTable["webex"]?.string
         )
       } else {
         nil
@@ -233,40 +233,40 @@ public struct ConfigLoader: Sendable {
       excludeCalendars: excludeCalendars,
       includeCalendarTypes: includeCalendarTypes,
       excludeCalendarTypes: excludeCalendarTypes,
-      showCalendar: text?["show-calendar"] as? Bool,
-      showLocation: text?["show-location"] as? Bool,
-      showAttendees: text?["show-attendees"] as? Bool,
-      showMeetingUrl: text?["show-meeting-url"] as? Bool,
-      showNotes: text?["show-notes"] as? Bool,
+      showCalendar: text?["show-calendar"]?.bool,
+      showLocation: text?["show-location"]?.bool,
+      showAttendees: text?["show-attendees"]?.bool,
+      showMeetingUrl: text?["show-meeting-url"]?.bool,
+      showNotes: text?["show-notes"]?.bool,
       groupBy: groupBy,
       showEmptyDates: showEmptyDates,
-      freeMinDuration: free?["min-duration"] as? Int,
-      freeWorkStart: free?["work-start"] as? String,
-      freeWorkEnd: free?["work-end"] as? String,
-      timeFormat: templates?["time-format"] as? String,
-      dateFormat: templates?["date-format"] as? String,
-      eventTemplate: templates?["event"] as? String,
-      dateHeaderTemplate: templates?["date-header"] as? String,
-      calendarHeaderTemplate: templates?["calendar-header"] as? String,
-      eventTemplateFile: templates?["event-file"] as? String,
-      dateHeaderTemplateFile: templates?["date-header-file"] as? String,
-      calendarHeaderTemplateFile: templates?["calendar-header-file"] as? String,
-      showUid: text?["show-uid"] as? Bool,
-      truncateNotes: templates?["truncate-notes"] as? Int,
-      truncateLocation: templates?["truncate-location"] as? Int,
-      maxAttendees: templates?["max-attendees"] as? Int,
-      bullet: templates?["bullet"] as? String,
-      separator: templates?["separator"] as? String,
-      indent: templates?["indent"] as? String,
+      freeMinDuration: free?["min-duration"]?.int,
+      freeWorkStart: free?["work-start"]?.string,
+      freeWorkEnd: free?["work-end"]?.string,
+      timeFormat: templates?["time-format"]?.string,
+      dateFormat: templates?["date-format"]?.string,
+      eventTemplate: templates?["event"]?.string,
+      dateHeaderTemplate: templates?["date-header"]?.string,
+      calendarHeaderTemplate: templates?["calendar-header"]?.string,
+      eventTemplateFile: templates?["event-file"]?.string,
+      dateHeaderTemplateFile: templates?["date-header-file"]?.string,
+      calendarHeaderTemplateFile: templates?["calendar-header-file"]?.string,
+      showUid: text?["show-uid"]?.bool,
+      truncateNotes: templates?["truncate-notes"]?.int,
+      truncateLocation: templates?["truncate-location"]?.int,
+      maxAttendees: templates?["max-attendees"]?.int,
+      bullet: templates?["bullet"]?.string,
+      separator: templates?["separator"]?.string,
+      indent: templates?["indent"]?.string,
       browsers: browserConfig
     )
   }
 
-  private static func tomlStringArray(_ value: Any?) -> [String]? {
-    guard let array = value as? TOMLArray else { return nil }
+  private static func tomlStringArray(_ value: TOMLValueConvertible?) -> [String]? {
+    guard let array = value?.array else { return nil }
     var result: [String] = []
     for i in 0..<array.count {
-      if let str = array[i] as? String {
+      if let str = array[i].string {
         result.append(str)
       }
     }

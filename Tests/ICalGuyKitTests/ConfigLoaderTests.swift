@@ -68,12 +68,57 @@ final class ConfigLoaderTests: XCTestCase {
     XCTAssertNotNil(config)
   }
 
+  // MARK: - Value Parsing
+
+  func testParsesScalarsFromEachSection() throws {
+    let content = """
+      [defaults]
+      format = "json"
+      exclude-all-day = true
+      group-by = "calendar"
+      show-empty-dates = true
+      include-calendars = ["Work", "Home"]
+
+      [text]
+      show-calendar = false
+      show-uid = true
+
+      [templates]
+      time-format = "HH:mm"
+      truncate-notes = 200
+
+      [free]
+      min-duration = 30
+      work-start = "09:00"
+
+      [browsers]
+      default = "Safari"
+      meet = "Chrome"
+      """
+    let path = makeConfigFile(name: "values", content: content)
+    defer { cleanup(path) }
+
+    let config = try XCTUnwrap(try ConfigLoader.load(from: path))
+    XCTAssertEqual(config.format, "json")
+    XCTAssertEqual(config.excludeAllDay, true)
+    XCTAssertEqual(config.groupBy, "calendar")
+    XCTAssertEqual(config.showEmptyDates, true)
+    XCTAssertEqual(config.includeCalendars, ["Work", "Home"])
+    XCTAssertEqual(config.showCalendar, false)
+    XCTAssertEqual(config.showUid, true)
+    XCTAssertEqual(config.timeFormat, "HH:mm")
+    XCTAssertEqual(config.truncateNotes, 200)
+    XCTAssertEqual(config.freeMinDuration, 30)
+    XCTAssertEqual(config.freeWorkStart, "09:00")
+    XCTAssertEqual(config.browsers?.defaultBrowser, "Safari")
+    XCTAssertEqual(config.browsers?.meet, "Chrome")
+  }
+
   // MARK: - Helpers
 
-  private func makeConfigFile(name: String) -> String {
+  private func makeConfigFile(name: String, content: String = "[defaults]\n") -> String {
     let dir = FileManager.default.temporaryDirectory.path
     let path = "\(dir)/ical-guy-\(name)-\(UUID().uuidString).toml"
-    let content = "[defaults]\n"
     // swiftlint:disable:next force_try
     try! content.write(
       toFile: path, atomically: true, encoding: .utf8)
