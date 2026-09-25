@@ -20,24 +20,12 @@ public struct DateGrouper: Sendable {
 
     for event in events {
       let eventStart = calendar.startOfDay(for: event.startDate)
-      let eventEnd = calendar.startOfDay(for: event.endDate)
 
-      let effectiveEnd: Date
-      if event.isAllDay {
-        // All-day events: EventKit sets endDate to midnight of the *next* day.
-        // Subtract 1 day so a 1-day event stays in 1 bucket, a 3-day event spans 3 days.
-        effectiveEnd = calendar.date(byAdding: .day, value: -1, to: eventEnd) ?? eventEnd
-      } else {
-        // Timed events ending exactly at midnight: don't spill into the next day
-        let endComponents = calendar.dateComponents([.hour, .minute, .second], from: event.endDate)
-        if endComponents.hour == 0 && endComponents.minute == 0 && endComponents.second == 0
-          && eventEnd > eventStart
-        {
-          effectiveEnd = calendar.date(byAdding: .day, value: -1, to: eventEnd) ?? eventEnd
-        } else {
-          effectiveEnd = eventEnd
-        }
-      }
+      // Bucket by the last instant the event occupies. EventKit ends all-day events at
+      // 23:59:59 of the last day (not midnight of the next), and timed events ending exactly
+      // at midnight shouldn't spill into the next day. Zero-duration events stay on their start day.
+      let lastInstant = max(event.startDate, event.endDate.addingTimeInterval(-1))
+      let effectiveEnd = calendar.startOfDay(for: lastInstant)
 
       var day = eventStart
       // Clip to query range boundaries
