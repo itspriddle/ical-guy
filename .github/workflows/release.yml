@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build-and-release:
-    runs-on: macos-15
+    runs-on: macos-26
     env:
       TAG_NAME: ${{ github.ref_name }}
     steps:
@@ -19,7 +19,7 @@ jobs:
           persist-credentials: false
 
       - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_16.2.app
+        run: sudo xcode-select -s /Applications/Xcode_26.6.app
 
       - name: Build universal binary
         run: swift build -c release --arch arm64 --arch x86_64
