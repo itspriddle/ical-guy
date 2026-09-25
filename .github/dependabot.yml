@@ -8,8 +8,23 @@ updates:
       swift-dependencies:
         patterns:
           - "*"
+    cooldown:
+      default-days: 10
+      semver-major-days: 7
+      semver-minor-days: 3
+      semver-patch-days: 2
+    commit-message:
+      prefix: "Swift"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    cooldown:
+      default-days: 10
+    commit-message:
+      prefix: "CI"
