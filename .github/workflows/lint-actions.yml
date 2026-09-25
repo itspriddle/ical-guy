@@ -30,12 +30,22 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Run actionlint
+      - name: Install actionlint
         env:
-          GH_TOKEN: ${{ github.token }}
+          ACTIONLINT_VERSION: 1.7.12
+          ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+        run: |
+          archive="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          curl -fsSLO "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/${archive}"
+          echo "${ACTIONLINT_SHA256}  ${archive}" | sha256sum --check --strict
+          mkdir -p "$RUNNER_TEMP/actionlint"
+          tar -xzf "$archive" -C "$RUNNER_TEMP/actionlint" actionlint
+          echo "$RUNNER_TEMP/actionlint" >> "$GITHUB_PATH"
+        shell: bash
+
+      - name: Run actionlint
         run: |
           echo "::add-matcher::.github/matchers/actionlint.json"
 
-          gh extension install cschleiden/gh-actionlint
-          gh actionlint -color
+          actionlint -color
         shell: bash
