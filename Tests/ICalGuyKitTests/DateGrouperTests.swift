@@ -170,6 +170,51 @@ final class DateGrouperTests: XCTestCase {
     XCTAssertEqual(groups[0].events.count, 1)
   }
 
+  // Real EventKit ends all-day events at 23:59:59 of the last day, not midnight of the next.
+
+  func testSingleDayAllDayEventWithEventKitEndDate() {
+    let events = [
+      makeEvent(
+        id: "1", title: "Holiday",
+        startDate: date(2024, 3, 15), endDate: date(2024, 3, 16).addingTimeInterval(-1),
+        isAllDay: true)
+    ]
+
+    let groups = grouper.groupByDate(events, from: date(2024, 3, 1), to: date(2024, 3, 31))
+
+    XCTAssertEqual(groups.count, 1)
+    XCTAssertEqual(groups[0].date, "2024-03-15")
+    XCTAssertEqual(groups[0].events.count, 1)
+  }
+
+  func testMultiDayAllDayEventWithEventKitEndDateIncludesLastDay() {
+    // Mar 15-17 inclusive
+    let events = [
+      makeEvent(
+        id: "1", title: "Conference",
+        startDate: date(2024, 3, 15), endDate: date(2024, 3, 18).addingTimeInterval(-1),
+        isAllDay: true)
+    ]
+
+    let groups = grouper.groupByDate(events)
+
+    XCTAssertEqual(groups.map(\.date), ["2024-03-15", "2024-03-16", "2024-03-17"])
+  }
+
+  func testAllDayEventWithEventKitEndDateClippedToRange() {
+    // Mar 14-17 inclusive, queried Mar 15-16
+    let events = [
+      makeEvent(
+        id: "1", title: "Conference",
+        startDate: date(2024, 3, 14), endDate: date(2024, 3, 18).addingTimeInterval(-1),
+        isAllDay: true)
+    ]
+
+    let groups = grouper.groupByDate(events, from: date(2024, 3, 15), to: date(2024, 3, 16))
+
+    XCTAssertEqual(groups.map(\.date), ["2024-03-15", "2024-03-16"])
+  }
+
   func testTimedOvernightEventSpansTwoDays() {
     // Timed event from 10pm Mar 15 to 2am Mar 16
     let events = [
