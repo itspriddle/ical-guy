@@ -585,6 +585,7 @@ Available template variables:
 | `{{relativeStart}}` / `{{relativeEnd}}` | Relative time (e.g. "in 30 minutes") |
 | `{{location}}` | Event location |
 | `{{notes}}` | Event notes |
+| `{{{indentedNotes}}}` | Event notes, each line indented for display under a label |
 | `{{meetingUrl}}` | Detected meeting URL |
 | `{{status}}` | Event status (e.g. "confirmed") |
 | `{{availability}}` | Availability (e.g. "busy") |
@@ -603,6 +604,7 @@ Boolean sections for conditional rendering:
 | `{{#hasLocation}}...{{/hasLocation}}` | Has location |
 | `{{#hasMeetingUrl}}...{{/hasMeetingUrl}}` | Has meeting URL |
 | `{{#hasAttendees}}...{{/hasAttendees}}` | Has attendees |
+| `{{#hasNotes}}...{{/hasNotes}}` | Has notes |
 | `{{#showCalendar}}...{{/showCalendar}}` | Display toggle (config-controlled) |
 
 ANSI formatting lambdas (disabled with `--no-color`):

@@ -221,6 +221,9 @@ public struct TemplateFormatter: OutputFormatter, Sendable {
     context["bullet"] = decorations.bullet
     context["separator"] = decorations.separator
     context["indent"] = decorations.indent
+    context["indentedNotes"] = Self.indentLines(
+      context["notes"] as? String ?? "", prefix: decorations.indent + "  "
+    )
 
     // Inject ANSI lambdas
     context["bold"] = MustacheLambda { text in
@@ -235,6 +238,18 @@ public struct TemplateFormatter: OutputFormatter, Sendable {
 
     let result = eventTemplate.render(context)
     return Self.trimTrailingWhitespace(result)
+  }
+
+  /// Trims surrounding whitespace, then prefixes each non-empty line.
+  /// Empty lines are left empty to avoid trailing whitespace.
+  private static func indentLines(_ text: String, prefix: String) -> String {
+    text.trimmingCharacters(in: .whitespacesAndNewlines)
+      .split(omittingEmptySubsequences: false, whereSeparator: \.isNewline)
+      .map { line in
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        return trimmed.isEmpty ? "" : prefix + line
+      }
+      .joined(separator: "\n")
   }
 
   /// Single-pass trim of trailing whitespace and newlines from Mustache output.
@@ -342,6 +357,13 @@ extension TemplateFormatter {
     parts.append("{{/hasAttendeesOverflow}}")
     parts.append("{{/hasAttendees}}")
     parts.append("{{/showAttendees}}")
+    // Notes section (multi-line, pre-indented; unescaped to preserve raw content)
+    parts.append("{{#showNotes}}")
+    parts.append("{{#hasNotes}}")
+    parts.append("{{{indent}}}{{#dim}}Notes:{{/dim}}")
+    parts.append("{{{indentedNotes}}}")
+    parts.append("{{/hasNotes}}")
+    parts.append("{{/showNotes}}")
     // Recurrence detail line
     parts.append("{{#isRecurring}}")
     parts.append("{{{indent}}}{{#dim}}Recurs:{{/dim}} {{recurrence.description}}")
